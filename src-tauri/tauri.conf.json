@@ -43,7 +43,7 @@
       "endpoints": [
         "https://github.com/alec60/paca-logistics-automations/releases/latest/download/latest.json"
       ],
-      "pubkey": "REPLACED_IN_PHASE_5",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMxRDQyNDc1Q0ExNzU2NwpSV1JuZGFGY1IwSWRETzJ6a1FHaVRscTE3em01UisybzRKK05WTWVzVEgwUWRybFBiNk1vd05udQo=",
       "dialog": false
     }
   }
