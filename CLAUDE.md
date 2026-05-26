@@ -1,176 +1,115 @@
-# Ruflo — Claude Code Configuration
+# Transport Paca — Claude Code & Ruflo guide
 
-## Rules
+Project-specific instructions for any Claude Code / Ruflo session working in this repo. Read alongside `AGENTS.md` (architecture + ops) and `README.md` (humans).
 
-- Do what has been asked; nothing more, nothing less
-- NEVER create files unless absolutely necessary — prefer editing existing files
-- NEVER create documentation files unless explicitly requested
-- NEVER save working files or tests to root — use `/src`, `/tests`, `/docs`, `/config`, `/scripts`
-- ALWAYS read a file before editing it
-- NEVER commit secrets, credentials, or .env files
-- NEVER add a `Co-Authored-By` trailer to user commits unless this project's `.claude/settings.json` has `attribution.commit` set (#2078). The Claude Code Bash tool may suggest one in its default commit-message template — ignore it. `Co-Authored-By` is semantic authorship attribution under git/GitHub convention; the tool is the facilitator, not a co-author.
-- Keep files under 500 lines
-- Validate input at system boundaries
+## Project at a glance
 
-## Agent Comms (SendMessage-First Coordination)
+Carrier intelligence desktop app. Tauri 2 (Rust + WebView) shipping a React 18 + TypeScript + Tailwind v4 frontend. Local Node sidecar proxies Anthropic API calls so the API key never reaches the renderer.
 
-Named agents coordinate via `SendMessage`, not polling or shared state.
+Frontend talks to SQLite directly via `@tauri-apps/plugin-sql`. The sidecar is purely a network proxy.
 
 ```
-Lead (you) ←→ architect ←→ developer ←→ tester ←→ reviewer
-              (named agents message each other directly)
+src/                  React app (skills, pages, components, core/ services)
+server/               Node sidecar — Express on 127.0.0.1:19191
+src-tauri/            Rust + Tauri shell, plugins, migrations, signing
+tests/{unit,e2e}/     Vitest + Playwright
+.github/workflows/    CI + signed release
 ```
 
-### Spawning a Coordinated Team
-
-```javascript
-// ALL agents in ONE message, each knows WHO to message next
-Agent({ prompt: "Research the codebase. SendMessage findings to 'architect'.",
-  subagent_type: "researcher", name: "researcher", run_in_background: true })
-Agent({ prompt: "Wait for 'researcher'. Design solution. SendMessage to 'coder'.",
-  subagent_type: "system-architect", name: "architect", run_in_background: true })
-Agent({ prompt: "Wait for 'architect'. Implement it. SendMessage to 'tester'.",
-  subagent_type: "coder", name: "coder", run_in_background: true })
-Agent({ prompt: "Wait for 'coder'. Write tests. SendMessage results to 'reviewer'.",
-  subagent_type: "tester", name: "tester", run_in_background: true })
-Agent({ prompt: "Wait for 'tester'. Review code quality and security.",
-  subagent_type: "reviewer", name: "reviewer", run_in_background: true })
-
-// Kick off the pipeline
-SendMessage({ to: "researcher", summary: "Start", message: "[task context]" })
-```
-
-### Patterns
-
-| Pattern | Flow | Use When |
-|---------|------|----------|
-| **Pipeline** | A → B → C → D | Sequential dependencies (feature dev) |
-| **Fan-out** | Lead → A, B, C → Lead | Independent parallel work (research) |
-| **Supervisor** | Lead ↔ workers | Ongoing coordination (complex refactor) |
-
-### Rules
-
-- ALWAYS name agents — `name: "role"` makes them addressable
-- ALWAYS include comms instructions in prompts — who to message, what to send
-- Spawn ALL agents in ONE message with `run_in_background: true`
-- After spawning: STOP, tell user what's running, wait for results
-- NEVER poll status — agents message back or complete automatically
-
-## Swarm & Routing
-
-### Config
-- **Topology**: hierarchical-mesh (anti-drift)
-- **Max Agents**: 15
-- **Memory**: hybrid
-- **HNSW**: Enabled
-- **Neural**: Enabled
+## Day-to-day commands
 
 ```bash
-npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --strategy specialized
+pnpm install
+pnpm dev              # vite + sidecar concurrently
+pnpm typecheck
+pnpm lint
+pnpm test             # vitest
+pnpm test:e2e         # playwright (against vite preview)
+pnpm tauri dev        # full Tauri desktop dev loop
+pnpm tauri build      # signed .msi
 ```
 
-### Agent Routing
+## Conventions
 
-| Task | Agents | Topology |
-|------|--------|----------|
-| Bug Fix | researcher, coder, tester | hierarchical |
-| Feature | architect, coder, tester, reviewer | hierarchical |
-| Refactor | architect, coder, reviewer | hierarchical |
-| Performance | perf-engineer, coder | hierarchical |
-| Security | security-architect, auditor | hierarchical |
+- Files under **500 lines**. Split when you hit it.
+- Components: `PascalCase.tsx`. Core/lib: `kebab-case.ts`.
+- Skill directories: `src/skills/<slug>/` with `manifest.ts` (default export), `schemas.ts`, `prompt.ts`, `handler.ts`, `ParamView.tsx`, `ResultView.tsx`, `i18n/{en,fr}.json`.
+- Tailwind utilities only — never hardcode hex. Use design tokens from `src/index.css @theme`.
+- All user-visible strings via `t()` (i18next). French is default.
+- Animations capped at 120 ms.
+- Validate input at system boundaries with Zod.
+- No real carrier names, phone numbers, emails, or business data in code, tests, fixtures, or commits — see Section 11 in `AGENTS.md`.
 
-### When to Swarm
-- **YES**: 3+ files, new features, cross-module refactoring, API changes, security, performance
-- **NO**: single file edits, 1-2 line fixes, docs updates, config changes, questions
+## Adding a new automation
 
-### 3-Tier Model Routing
+1. **Spec.** Write one paragraph in `CHANGELOG.md` describing what the new skill does.
+2. **Pseudocode.** Sketch the params, prompt, result shape, UI.
+3. **Architecture.** Run `pnpm gen:skill <slug>` to copy `src/skills/leads/` as a template.
+4. **Refinement (parallel agents):**
+   - Agent A: edit `manifest.ts` (slug, bilingual name, description, icon).
+   - Agent B: edit `paramsSchema` + `ParamView.tsx`.
+   - Agent C: edit `prompt.ts` + `handler.ts` (include `ctx.budget.canAffordEstimate()` pre-check and `ctx.blacklist.filterCarriers()` if results have companies).
+   - Agent D: edit `ResultView.tsx`.
+   - Agent E: add `i18n/{en,fr}.json` entries for the new skill.
+   - Reviewer: cross-check Zod schemas, i18n coverage, blacklist + budget integration.
+5. **Completion.** Add a Playwright e2e at `tests/e2e/<slug>.spec.ts`. Run `pnpm typecheck && pnpm lint && pnpm test` — all green before tagging.
+6. **Release.** Bump version in `package.json` + `src-tauri/tauri.conf.json`. Update `CHANGELOG.md`. `git commit && git tag vX.Y.Z && git push origin main --tags`.
+7. **Verify.** GitHub Action builds the `.msi`, publishes the release, and writes `latest.json`. Within ~15 minutes every team member's app picks up the update on next launch.
 
-| Tier | Handler | Use Cases |
-|------|---------|-----------|
-| 1 | Agent Booster (WASM) | Simple transforms — skip LLM, use Edit directly |
-| 2 | Haiku | Simple tasks, low complexity |
-| 3 | Sonnet/Opus | Architecture, security, complex reasoning |
+## Release workflow
 
-## Memory & Learning
-
-### Before Any Task
-```bash
-npx @claude-flow/cli@latest memory search --query "[task keywords]" --namespace patterns
-npx @claude-flow/cli@latest hooks route --task "[task description]"
-```
-
-### After Success
-```bash
-npx @claude-flow/cli@latest memory store --namespace patterns --key "[name]" --value "[what worked]"
-npx @claude-flow/cli@latest hooks post-task --task-id "[id]" --success true --store-results true
-```
-
-### MCP Tools (use `ToolSearch("keyword")` to discover)
-
-| Category | Key Tools |
-|----------|-----------|
-| **Memory** | `memory_store`, `memory_search`, `memory_search_unified` |
-| **Bridge** | `memory_import_claude`, `memory_bridge_status` |
-| **Swarm** | `swarm_init`, `swarm_status`, `swarm_health` |
-| **Agents** | `agent_spawn`, `agent_list`, `agent_status` |
-| **Hooks** | `hooks_route`, `hooks_post-task`, `hooks_worker-dispatch` |
-| **Security** | `aidefence_scan`, `aidefence_is_safe`, `aidefence_has_pii` |
-| **Hive-Mind** | `hive-mind_init`, `hive-mind_consensus`, `hive-mind_spawn` |
-
-### Background Workers
-
-| Worker | When |
-|--------|------|
-| `audit` | After security changes |
-| `optimize` | After performance work |
-| `testgaps` | After adding features |
-| `map` | Every 5+ file changes |
-| `document` | After API changes |
+Tag-driven via `.github/workflows/release.yml`:
 
 ```bash
-npx @claude-flow/cli@latest hooks worker dispatch --trigger audit
+# After all checks pass on main:
+git tag v0.1.0
+git push origin main --tags
 ```
 
-## Agents
+The Action:
+1. Checks out, installs deps, builds frontend + sidecar.
+2. Runs `tauri-apps/tauri-action@v0` → produces signed `.msi` + `latest.json`.
+3. Publishes a GitHub Release. Installed clients pull `latest.json` on next launch and self-update.
 
-**Core**: `coder`, `reviewer`, `tester`, `planner`, `researcher`
-**Architecture**: `system-architect`, `backend-dev`, `mobile-dev`
-**Security**: `security-architect`, `security-auditor`
-**Performance**: `performance-engineer`, `perf-analyzer`
-**Coordination**: `hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`
-**GitHub**: `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`
+**Required secrets** (Settings → Secrets and variables → Actions):
+- `TAURI_SIGNING_PRIVATE_KEY` — contents of `$HOME/.tauri/transport-paca.key`
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — its passphrase
 
-Any string works as a custom agent type.
+These never go in the repo. The public key lives in `src-tauri/tauri.conf.json` (already embedded).
 
-## Build & Test
+## What NEVER goes in the repo
 
-- ALWAYS run tests after code changes
-- ALWAYS verify build succeeds before committing
+**Public-repo safety — the repo is effectively public; treat it that way.**
 
-```bash
-npm run build && npm test
-```
+- Real carrier names → use `Test Carrier Inc.`, `Demo Transport Ltd.`
+- Real phone numbers → `555-0100..0199`
+- Real emails → `example.com`
+- Real addresses, client names, partner names, prices, margins, quote data
+- Team members' real names (first names or initials in commits)
+- API keys — even revoked. Use `sk-ant-PLACEHOLDER`.
+- Screenshots of real searches → use mocked data
+- `*.db`, `settings.json`, `*.csv`, anything in `exports/` or `imports/`
 
-## CLI Quick Reference
+These are excluded by `.gitignore`. Don't add a `--force` to override.
 
-```bash
-npx @claude-flow/cli@latest init --wizard           # Setup
-npx @claude-flow/cli@latest swarm init --v3-mode     # Start swarm
-npx @claude-flow/cli@latest memory search --query "" # Vector search
-npx @claude-flow/cli@latest hooks route --task ""    # Route to agent
-npx @claude-flow/cli@latest doctor --fix             # Diagnostics
-npx @claude-flow/cli@latest security scan            # Security scan
-npx @claude-flow/cli@latest performance benchmark    # Benchmarks
-```
+Allowed: public Canadian geography, industry-standard equipment terminology, generic UI strings, generic placeholder data.
 
-26 commands, 140+ subcommands. Use `--help` on any command for details.
+## Ruflo / Claude Code orchestration
 
-## Setup
+Use `ToolSearch` to discover Ruflo MCP tools (`memory_search`, `swarm_init`, `agent_spawn`, etc.) when starting non-trivial work. Single-file edits and small fixes are faster as direct tool calls. Swarms earn their keep on 3+ truly independent files (Phase 3 / Phase 6 are good examples — Phase 3 split into ParamView / ResultView / prompt / handler agents).
 
-```bash
-claude mcp add claude-flow -- npx -y @claude-flow/cli@latest
-npx @claude-flow/cli@latest daemon start
-npx @claude-flow/cli@latest doctor --fix
-```
+When spawning a coordinated team, always:
+- Name every agent (`name: "role"` makes them addressable via `SendMessage`).
+- Include comms instructions in each prompt: who to message, what to send.
+- Spawn ALL agents in one message with `run_in_background: true`.
+- After spawning, STOP and wait for results. Don't poll.
 
-**Agent tool** handles execution (agents, files, code, git). **MCP tools** handle coordination (swarm, memory, hooks). **CLI** is the same via Bash.
+## Quick troubleshooting
+
+| Symptom | Likely cause |
+|---|---|
+| Build fails with `tauri-plugin-sql` not found | run `pnpm tauri build` once to fetch the Rust deps |
+| Settings doesn't persist across launches | localStorage key is `transport-paca-settings`; check DevTools |
+| Updater never fires | `pubkey` in `tauri.conf.json` doesn't match the GHA-signing private key |
+| Skill not in sidebar | `manifest.ts` must `default export` the `SkillManifest`; the registry uses `import.meta.glob` |
+| `pnpm dev` sidecar dies | check port 19191 isn't in use; override with `TP_SIDECAR_PORT` |
