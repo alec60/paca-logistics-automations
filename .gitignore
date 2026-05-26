@@ -1,0 +1,52 @@
+﻿# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+src-tauri/target/
+src-tauri/gen/
+
+# Tauri-generated
+src-tauri/WixTools/
+
+# Runtime data — NEVER commit
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+settings.json
+*.log
+
+# CSV exports / imports (might contain carrier data)
+*.csv
+exports/
+imports/
+
+# Ruflo / Claude Flow workspace
+.ruflo/
+.swarm/
+.claude-flow/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+tauri-signing-*
+~/
+
+# OS junk
+*.swp
+*~
