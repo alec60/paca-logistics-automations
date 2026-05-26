@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { BudgetMeter } from "./components/BudgetMeter";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
+import { CommandPalette } from "./components/CommandPalette";
 
 export default function App() {
   return (
@@ -11,7 +12,12 @@ export default function App() {
         <header
           className="flex items-center justify-between border-b border-border-subtle bg-surface-1 px-6 py-3"
         >
-          <div className="font-mono text-sm text-text-muted">Transport Paca</div>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-sm text-text-muted">Transport Paca</span>
+            <kbd className="rounded border border-border-subtle bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-text-dim">
+              Ctrl + K
+            </kbd>
+          </div>
           <div className="flex items-center gap-4">
             <BudgetMeter />
             <LanguageSwitcher />
@@ -21,6 +27,7 @@ export default function App() {
           <Outlet />
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }
