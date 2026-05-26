@@ -1,17 +1,42 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSettingsStore } from "../core/settings-store";
+import { budgetApi } from "../core/context";
 
-// Phase 2 wires this to the BudgetAPI. Phase 1 shows a static $0 / limit bar.
 export function BudgetMeter() {
   const { t } = useTranslation();
-  const limit = useSettingsStore((s) => s.monthlyBudgetUsd);
-  const spend = 0;
+  const [limit, setLimit] = useState(20);
+  const [spend, setSpend] = useState(0);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [l, s] = await Promise.all([
+          budgetApi.getMonthlyLimit(),
+          budgetApi.getCurrentSpend(),
+        ]);
+        if (!cancelled) {
+          setLimit(l);
+          setSpend(s);
+          setReady(true);
+        }
+      } catch {
+        // Db not ready (e.g. first paint pre-Tauri-init) — silently retry once.
+        if (!cancelled) setTimeout(load, 500);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const pct = limit > 0 ? Math.min(100, (spend / limit) * 100) : 0;
-  const color =
-    pct < 50 ? "bg-success" : pct < 80 ? "bg-warning" : "bg-danger";
+  const color = pct < 50 ? "bg-success" : pct < 80 ? "bg-warning" : "bg-danger";
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" aria-busy={!ready}>
       <span className="font-mono text-xs text-text-muted">
         ${spend.toFixed(2)} / ${limit.toFixed(0)}
       </span>

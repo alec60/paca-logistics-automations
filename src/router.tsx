@@ -2,8 +2,11 @@ import type { ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "./App";
 import { useSettingsStore } from "./core/settings-store";
+import { SettingsPage } from "./pages/Settings";
+import { HistoryPage } from "./pages/History";
+import { SkillRunner } from "./pages/SkillRunner";
 
-// First-run gate: if no API key is set, force the user to /settings.
+// First-run gate: if no API key is set, redirect to /settings.
 function RequireApiKey({ children }: { children: ReactNode }) {
   const apiKey = useSettingsStore((s) => s.apiKey);
   if (!apiKey) return <Navigate to="/settings" replace />;
@@ -19,15 +22,29 @@ export const router = createBrowserRouter([
         index: true,
         element: (
           <RequireApiKey>
-            <div className="p-8 text-text-muted">Sélectionnez une automatisation dans la barre latérale.</div>
+            <div className="p-8 text-text-muted">
+              Sélectionnez une automatisation dans la barre latérale.
+            </div>
           </RequireApiKey>
         ),
       },
-      // Skill routes are registered dynamically in Phase 2 via skill-registry.
-      // Placeholder route to be replaced by registry-driven routes:
-      { path: "skills/:slug", element: <RequireApiKey><div /></RequireApiKey> },
-      { path: "history", element: <RequireApiKey><div /></RequireApiKey> },
-      { path: "settings", element: <div /> },
+      {
+        path: "skills/:slug",
+        element: (
+          <RequireApiKey>
+            <SkillRunner />
+          </RequireApiKey>
+        ),
+      },
+      {
+        path: "history",
+        element: (
+          <RequireApiKey>
+            <HistoryPage />
+          </RequireApiKey>
+        ),
+      },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
 ]);

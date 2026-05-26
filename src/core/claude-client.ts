@@ -1,11 +1,59 @@
 // Frontend Claude client — proxies through the local Tauri sidecar.
-// Phase 2 wires this to the Express sidecar over a random localhost port.
+// The sidecar holds the Anthropic API key in-process; the browser never sees it.
 
-export interface ClaudeRequest {
-  skillSlug: string;
-  params: unknown;
+const DEFAULT_SIDECAR_PORT = 19191;
+
+function sidecarBase(): string {
+  // In dev the sidecar listens on a fixed port; in production Tauri injects the
+  // chosen random port via window.__TP_SIDECAR_PORT__ at startup.
+  const port =
+    (window as unknown as { __TP_SIDECAR_PORT__?: number }).__TP_SIDECAR_PORT__ ??
+    DEFAULT_SIDECAR_PORT;
+  return `http://127.0.0.1:${port}`;
 }
 
-export async function callSkillEndpoint<T>(_req: ClaudeRequest): Promise<T> {
-  throw new Error("claude-client not wired yet — see Phase 2");
+export class SidecarError extends Error {
+  constructor(message: string, public status?: number) {
+    super(message);
+    this.name = "SidecarError";
+  }
+}
+
+export async function callSidecar<T>(
+  path: string,
+  init?: { method?: string; body?: unknown },
+): Promise<T> {
+  const res = await fetch(`${sidecarBase()}${path}`, {
+    method: init?.method ?? "GET",
+    headers: { "Content-Type": "application/json" },
+    body: init?.body ? JSON.stringify(init.body) : undefined,
+  });
+  if (!res.ok) {
+    let body: unknown = undefined;
+    try {
+      body = await res.json();
+    } catch {
+      /* ignore */
+    }
+    const msg =
+      (body && typeof body === "object" && "error" in body
+        ? String((body as { error: unknown }).error)
+        : null) ?? `Sidecar error ${res.status}`;
+    throw new SidecarError(msg, res.status);
+  }
+  return (await res.json()) as T;
+}
+
+export interface SkillCallRequest {
+  skillSlug: string;
+  params: unknown;
+  apiKey: string;
+  locale: "en" | "fr";
+}
+
+export async function callSkill<T>(req: SkillCallRequest): Promise<T> {
+  return callSidecar<T>(`/api/claude/${req.skillSlug}`, {
+    method: "POST",
+    body: { params: req.params, apiKey: req.apiKey, locale: req.locale },
+  });
 }
