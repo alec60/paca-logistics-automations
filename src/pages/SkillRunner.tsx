@@ -5,8 +5,10 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { findSkill } from "../core/skill-registry";
 import { useSettingsStore } from "../core/settings-store";
-import { callSkill } from "../core/claude-client";
-import type { SkillManifest } from "../core/types";
+import { blacklistApi, budgetApi } from "../core/context";
+import { getDb } from "../core/db";
+import type { SkillContext, SkillManifest } from "../core/types";
+import { BudgetError } from "../core/types";
 
 type AnyManifest = SkillManifest<unknown, unknown>;
 
@@ -30,15 +32,24 @@ export function SkillRunner() {
       setError(null);
       setResult(null);
       try {
-        const out = await callSkill({
-          skillSlug: skill.slug,
-          params: p,
-          apiKey,
+        const db = await getDb().catch(() => null);
+        const ctx: SkillContext & { apiKey: string } = {
+          claude: null as never, // skill handlers call the sidecar themselves
+          db,
+          blacklist: blacklistApi,
+          budget: budgetApi,
+          log: (m) => console.log(`[skill:${skill.slug}]`, m),
           locale,
-        });
+          apiKey,
+        };
+        const out = await skill.handler(p, ctx);
         setResult(out);
       } catch (err) {
-        setError((err as Error).message);
+        if (err instanceof BudgetError) {
+          setError(err.message);
+        } else {
+          setError((err as Error).message);
+        }
       } finally {
         setLoading(false);
       }

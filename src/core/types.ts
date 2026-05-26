@@ -41,8 +41,10 @@ export interface SkillManifest<Params, Result> {
   name: { en: string; fr: string };
   description: { en: string; fr: string };
   icon: LucideIcon;
-  paramsSchema: z.ZodSchema<Params>;
-  resultSchema: z.ZodSchema<Result>;
+  // Use ZodTypeAny so handlers may apply .default() to optional fields without
+  // a Params/Input mismatch. Output is validated at the call site.
+  paramsSchema: z.ZodTypeAny;
+  resultSchema: z.ZodTypeAny;
   ParamView: React.FC<{
     onSubmit: (p: Params) => void;
     defaultValues?: Partial<Params>;
