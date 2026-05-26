@@ -1,0 +1,28 @@
+{
+  "name": "Recherche de transporteurs",
+  "description": "Génère des pistes de transporteurs canadiens.",
+  "params": {
+    "truck_types": "Types de camion",
+    "fleet_size": "Taille de la flotte",
+    "count": "Nombre de pistes",
+    "provinces": "Provinces et territoires",
+    "sectors": "Secteurs régionaux",
+    "cities": "Villes",
+    "lanes": "Trajets préférés"
+  },
+  "result": {
+    "summary": "Résumé",
+    "carriers": "Transporteurs",
+    "sources": "Sources",
+    "blacklisted_hidden": "{{count}} masqués par la liste noire · voir",
+    "actions": {
+      "copy_contact": "Copier le contact",
+      "save_file": "Enregistrer sous",
+      "blacklist": "Mettre sur liste noire",
+      "send_crm": "Envoyer au CRM",
+      "copy_csv": "Copier CSV",
+      "new_search": "Nouvelle recherche",
+      "more_leads": "Plus de pistes"
+    }
+  }
+}

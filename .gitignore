@@ -47,6 +47,9 @@ Thumbs.db
 tauri-signing-*
 ~/
 
+# TS build info
+*.tsbuildinfo
+
 # OS junk
 *.swp
 *~

@@ -1,0 +1,28 @@
+{
+  "name": "Carrier lead finder",
+  "description": "Generate Canadian trucking carrier leads.",
+  "params": {
+    "truck_types": "Truck types",
+    "fleet_size": "Fleet size",
+    "count": "Number of leads",
+    "provinces": "Provinces & territories",
+    "sectors": "Regional sectors",
+    "cities": "Cities",
+    "lanes": "Preferred lanes"
+  },
+  "result": {
+    "summary": "Summary",
+    "carriers": "Carriers",
+    "sources": "Sources",
+    "blacklisted_hidden": "{{count}} hidden by blacklist · view",
+    "actions": {
+      "copy_contact": "Copy contact",
+      "save_file": "Save as file",
+      "blacklist": "Blacklist",
+      "send_crm": "Send to CRM",
+      "copy_csv": "Copy CSV",
+      "new_search": "New search",
+      "more_leads": "More leads"
+    }
+  }
+}

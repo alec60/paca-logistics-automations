@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "Transport Paca",
+    "sidebar": {
+      "automations": "Automations",
+      "history": "History",
+      "settings": "Settings"
+    },
+    "empty": {
+      "select_skill": "Select an automation in the sidebar."
+    }
+  },
+  "budget": {
+    "label": "Budget",
+    "warning_80": "You've used 80% of your monthly budget.",
+    "block_100": "Monthly budget reached. Raise the limit in Settings or wait until next month.",
+    "override": "Override"
+  },
+  "settings": {
+    "title": "Settings",
+    "api_key": "Anthropic API key",
+    "api_key_placeholder": "sk-ant-...",
+    "language": "Language",
+    "theme": "Theme",
+    "budget": "Monthly budget (USD)",
+    "blacklist": "Blacklist",
+    "save": "Save"
+  },
+  "blacklist": {
+    "manager": "Blacklist manager",
+    "add": "Add carrier",
+    "remove": "Remove",
+    "restore": "Restore",
+    "import_csv": "Import CSV",
+    "export_csv": "Export CSV",
+    "empty": "No blacklisted carriers yet."
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading…",
+    "error": "Something went wrong."
+  }
+}

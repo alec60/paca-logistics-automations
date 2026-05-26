@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "Transport Paca",
+    "sidebar": {
+      "automations": "Automatisations",
+      "history": "Historique",
+      "settings": "Paramètres"
+    },
+    "empty": {
+      "select_skill": "Sélectionnez une automatisation dans la barre latérale."
+    }
+  },
+  "budget": {
+    "label": "Budget",
+    "warning_80": "Vous avez utilisé 80 % de votre budget mensuel.",
+    "block_100": "Budget mensuel atteint. Augmentez la limite dans Paramètres ou attendez le mois prochain.",
+    "override": "Forcer"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "api_key": "Clé API Anthropic",
+    "api_key_placeholder": "sk-ant-...",
+    "language": "Langue",
+    "theme": "Thème",
+    "budget": "Budget mensuel (USD)",
+    "blacklist": "Liste noire",
+    "save": "Enregistrer"
+  },
+  "blacklist": {
+    "manager": "Gestion de la liste noire",
+    "add": "Ajouter un transporteur",
+    "remove": "Retirer",
+    "restore": "Restaurer",
+    "import_csv": "Importer CSV",
+    "export_csv": "Exporter CSV",
+    "empty": "Aucun transporteur sur la liste noire."
+  },
+  "common": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue."
+  }
+}

@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg:               #09090b;
+  --color-surface-1:        #131316;
+  --color-surface-2:        #1c1c20;
+  --color-surface-3:        #26262b;
+  --color-border-subtle:    #27272a;
+  --color-border:           #3f3f46;
+  --color-border-strong:    #52525b;
+  --color-text:             #fafafa;
+  --color-text-muted:       #a1a1aa;
+  --color-text-dim:         #71717a;
+  --color-accent:           #f97316;
+  --color-accent-hover:     #ea580c;
+  --color-accent-bg:        rgba(249, 115, 22, 0.12);
+  --color-accent-ring:      rgba(249, 115, 22, 0.32);
+  --color-accent-text:      #0a0a0b;
+  --color-success:          #22c55e;
+  --color-warning:          #eab308;
+  --color-danger:           #ef4444;
+  --color-info:             #38bdf8;
+  --font-sans:              "Inter", system-ui, sans-serif;
+  --font-mono:              "JetBrains Mono", ui-monospace, monospace;
+  --radius-sm:              6px;
+  --radius:                 10px;
+  --radius-lg:              14px;
+  --radius-xl:              20px;
+}
+
+@media (prefers-color-scheme: light) {
+  @theme {
+    --color-bg:             #fafafa;
+    --color-surface-1:      #ffffff;
+    --color-surface-2:      #f4f4f5;
+    --color-surface-3:      #e4e4e7;
+    --color-border-subtle:  #e4e4e7;
+    --color-border:         #d4d4d8;
+    --color-border-strong:  #a1a1aa;
+    --color-text:           #09090b;
+    --color-text-muted:     #52525b;
+    --color-text-dim:       #71717a;
+  }
+}
+
+/* shadcn-compat tokens (mapped to design tokens for primitives that read --background/--foreground) */
+@layer base {
+  :root {
+    --background: var(--color-bg);
+    --foreground: var(--color-text);
+    --card: var(--color-surface-1);
+    --card-foreground: var(--color-text);
+    --popover: var(--color-surface-2);
+    --popover-foreground: var(--color-text);
+    --primary: var(--color-accent);
+    --primary-foreground: var(--color-accent-text);
+    --secondary: var(--color-surface-2);
+    --secondary-foreground: var(--color-text);
+    --muted: var(--color-surface-2);
+    --muted-foreground: var(--color-text-muted);
+    --accent: var(--color-surface-3);
+    --accent-foreground: var(--color-text);
+    --destructive: var(--color-danger);
+    --destructive-foreground: #ffffff;
+    --border: var(--color-border);
+    --input: var(--color-border-subtle);
+    --ring: var(--color-accent-ring);
+    --radius: var(--radius);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    border-color: var(--color-border-subtle);
+  }
+
+  /* Animations capped at 120ms by convention */
+  * {
+    transition-duration: 120ms;
+  }
+}
