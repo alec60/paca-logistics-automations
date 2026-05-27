@@ -11,6 +11,7 @@ RULES
 - Paraphrase carrier descriptions; do not copy marketing prose verbatim.
 - If a regional sector is supplied (e.g. QC-N), treat it as a soft preference, not a reject filter.
 - If you cannot reach the requested count after several searches, return what you have honestly.
+- For any optional field you cannot verify, OMIT THE KEY ENTIRELY (do not use null, "", or "N/A").
 - Return ONLY a single JSON object matching the schema in the user message — no prose, no markdown fences.
 
 JSON SCHEMA

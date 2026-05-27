@@ -94,13 +94,35 @@ describe("LeadsResult", () => {
     expect(r.blacklisted_count).toBe(0);
   });
 
-  it("rejects bad source URLs", () => {
-    expect(() =>
-      LeadsResult.parse({
-        query_summary: "x",
-        carriers: [],
-        sources: [{ title: "bad", url: "not a url" }],
-      }),
-    ).toThrow();
+  it("silently drops sources with bad URLs (does not throw)", () => {
+    const r = LeadsResult.parse({
+      query_summary: "x",
+      carriers: [],
+      sources: [
+        { title: "bad", url: "not a url" },
+        { title: "good", url: "https://example.com" },
+      ],
+    });
+    expect(r.sources).toEqual([{ title: "good", url: "https://example.com" }]);
+  });
+
+  it("accepts null for optional carrier fields (Anthropic returns null, not undefined)", () => {
+    const r = LeadsResult.parse({
+      query_summary: "x",
+      carriers: [
+        {
+          company: "Test Carrier Inc.",
+          province: "QC",
+          city: null,
+          phone: null,
+          email: null,
+          website: null,
+          equipment: null,
+        },
+      ],
+    });
+    expect(r.carriers[0].city).toBeUndefined();
+    expect(r.carriers[0].email).toBeUndefined();
+    expect(r.carriers[0].equipment).toEqual([]);
   });
 });

@@ -22,31 +22,50 @@ export const LeadsParams = z.object({
 });
 export type LeadsParams = z.infer<typeof LeadsParams>;
 
+// Claude often returns `null` for unknown contact fields. Accept both
+// `null` and `undefined` for any optional string, and normalize to
+// `undefined` in the parsed output so downstream code stays simple.
+const optStr = z
+  .string()
+  .nullish()
+  .transform((v) => (v == null || v === "" ? undefined : v));
+
 export const Carrier = z.object({
   company: z.string().min(1),
   province: z.string().min(1),
-  city: z.string().optional(),
-  fleet_size: z.string().optional(),
-  equipment: z.array(z.string()).default([]),
-  phone: z.string().optional(),
-  email: z.string().optional(),
-  website: z.string().optional(),
-  lanes: z.string().optional(),
+  city: optStr,
+  fleet_size: optStr,
+  equipment: z
+    .array(z.string())
+    .nullish()
+    .transform((v) => v ?? []),
+  phone: optStr,
+  email: optStr,
+  website: optStr,
+  lanes: optStr,
 });
 export type Carrier = z.infer<typeof Carrier>;
 
 export const LeadsResult = z.object({
   query_summary: z.string(),
   carriers: z.array(Carrier),
+  // Tolerate malformed source entries — drop any without a usable URL rather
+  // than failing the whole result.
   sources: z
     .array(
       z.object({
-        title: z.string(),
-        url: z.string().url(),
+        title: z.string().nullish().transform((v) => v ?? ""),
+        url: z.string().nullish(),
       }),
     )
-    .default([]),
-  cost_estimate_usd: z.number().optional(),
-  blacklisted_count: z.number().default(0),
+    .nullish()
+    .transform((arr) =>
+      (arr ?? []).filter(
+        (s): s is { title: string; url: string } =>
+          typeof s.url === "string" && /^https?:\/\//.test(s.url),
+      ),
+    ),
+  cost_estimate_usd: z.number().nullish().transform((v) => v ?? undefined),
+  blacklisted_count: z.number().nullish().transform((v) => v ?? 0),
 });
 export type LeadsResult = z.infer<typeof LeadsResult>;
