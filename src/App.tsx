@@ -3,6 +3,7 @@ import { Sidebar } from "./components/Sidebar";
 import { BudgetMeter } from "./components/BudgetMeter";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { CommandPalette } from "./components/CommandPalette";
+import { DevPanel } from "./components/DevPanel";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         </main>
       </div>
       <CommandPalette />
+      <DevPanel />
     </div>
   );
 }

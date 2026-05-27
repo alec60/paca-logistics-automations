@@ -42,6 +42,10 @@ pnpm tauri build      # signed .msi
 
 ## Adding a new automation
 
+> **Use `AUTOMATION_PROMPT.md` as the master prompt for any dedicated "add automation" chat.** Hand it the whole repo and that one prompt — they're sufficient. Every new skill MUST append an entry to `FEATURES.md` before committing.
+
+Short version:
+
 1. **Spec.** Write one paragraph in `CHANGELOG.md` describing what the new skill does.
 2. **Pseudocode.** Sketch the params, prompt, result shape, UI.
 3. **Architecture.** Run `pnpm gen:skill <slug>` to copy `src/skills/leads/` as a template.

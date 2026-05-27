@@ -24,6 +24,8 @@
     "theme": "Thème",
     "budget": "Budget mensuel (USD)",
     "blacklist": "Liste noire",
+    "developer": "Développeur",
+    "dev_mode": "Activer le mode développeur",
     "save": "Enregistrer"
   },
   "blacklist": {
