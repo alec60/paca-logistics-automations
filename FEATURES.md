@@ -27,10 +27,10 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Added:** 2026-05-26
 - **Status:** shipped
 - **Description:** Generates a vetted list of Canadian trucking carriers matching truck type, fleet size, provinces, sectors, cities, and lanes, with public contact details where available.
-- **Inputs:** truck_types (10 options, multi), fleet_size (single), count (5–50), provinces (13 + 6 region quick-picks), regional sectors (PROV-X soft filter), cities (35-city grid), lanes (156 permutations + 18 presets)
+- **Inputs:** truck_types (10, multi), fleet_size (single), count (5–50), provinces & territories (13, picked via stylized SVG Canada map with inline NSEW sector overlays), cities (37, type-ahead search filtered by selected provinces + pinning), lanes (2-step From×To builder, 156 possible permutations, pinning)
 - **Output:** `LeadsResult { query_summary, carriers[], sources[], cost_estimate_usd, blacklisted_count }`
-- **Files touched:** `src/skills/leads/{manifest.ts, schemas.ts, prompt.ts, handler.ts, ParamView.tsx, ResultView.tsx, data.ts, i18n/{en,fr}.json}`
-- **Notes:** Uses Anthropic's hosted `web_search` tool (max 6 calls). Pre-call budget gate via `ctx.budget.canAffordEstimate()`. Post-call blacklist filter via `ctx.blacklist.filterCarriers()`. Cost computed from real `usage` and logged to `spend_log`.
+- **Files touched:** `src/skills/leads/{manifest.ts, schemas.ts, prompt.ts, handler.ts, ParamView.tsx, ResultView.tsx, data.ts, i18n/{en,fr}.json}`, `src/components/{CanadaMap.tsx, TerritoryRow.tsx, CitySearch.tsx, LanePicker.tsx}`
+- **Notes:** Uses Anthropic's hosted `web_search` tool (capped at 3 calls for Tier 1 rate limits). Pre-call budget gate via `ctx.budget.canAffordEstimate()`. Post-call blacklist filter via `ctx.blacklist.filterCarriers()`. Cost computed from real `usage` and logged to `spend_log`.
 
 ---
 
@@ -57,9 +57,9 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 
 - **Type:** ui
 - **Added:** 2026-05-26
-- **Status:** shipped
-- **Description:** Header bar showing this month's Anthropic spend against the configured cap (default $20). Green < 50%, amber 50–80%, red > 80%. Hard block at 100% via `canAffordEstimate`.
-- **Files touched:** `src/components/BudgetMeter.tsx`, `src/core/budget.ts`
+- **Status:** removed 2026-05-26
+- **Description:** ~~Header bar showing this month's Anthropic spend against the configured cap.~~ Removed because Anthropic doesn't expose live org spend over the API — the local SQLite mirror was confusing more than it helped. Pre-call cost estimation via `ctx.budget.canAffordEstimate()` still runs inside skill handlers; only the header widget is gone.
+- **Files touched:** ~~`src/components/BudgetMeter.tsx`~~ (deleted), `src/App.tsx` (unmounted)
 
 ### blacklist-manager
 
@@ -99,5 +99,53 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Type:** infra
 - **Added:** 2026-05-26
 - **Status:** shipped
-- **Description:** Bilingual UI via i18next, French as default. Every user-visible string goes through `t()`.
+- **Description:** Bilingual UI via i18next, French as default. Every user-visible string goes through `t()`. The active locale is read from the persisted Zustand store at i18n init time and stays in sync via a store subscription, so a chosen English stays English across restarts.
 - **Files touched:** `src/core/i18n.ts`, `src/locales/{en,fr}.json`, every component
+
+### canada-map
+
+- **Type:** ui
+- **Added:** 2026-05-26
+- **Status:** shipped
+- **Description:** Stylized SVG map of Canada used in the leads ParamView. 10 provinces as clickable rounded polygons positioned roughly geographically (BC tall on the west, prairies as a row, ON/QC large in the middle, NL detached on the east, NB/NS/PE clustered as Maritimes). On selection, the province's abbreviation is replaced inline by an NSEW sector cluster + center deselect button.
+- **Files touched:** `src/components/CanadaMap.tsx`
+
+### territory-row
+
+- **Type:** ui
+- **Added:** 2026-05-26
+- **Status:** shipped
+- **Description:** Distinct labeled pill row above the Canada map for YT / NT / NU. Selecting a territory pill expands it inline to show NSEW sector toggles + a deselect ×, mirroring the province-on-map interaction.
+- **Files touched:** `src/components/TerritoryRow.tsx`
+
+### city-search
+
+- **Type:** ui
+- **Added:** 2026-05-26
+- **Status:** shipped
+- **Description:** Type-ahead city picker that auto-filters to only cities in the currently selected provinces. Each row has a pin star — pinned cities sort to the top of the list and persist across sessions via Zustand → localStorage.
+- **Files touched:** `src/components/CitySearch.tsx`, `src/core/settings-store.ts` (added `pinnedCities`)
+
+### lane-picker
+
+- **Type:** ui
+- **Added:** 2026-05-26
+- **Status:** shipped
+- **Description:** Two-step From × To lane builder. Pick one or more origin provinces, pick one or more destinations, click Add — every origin×dest combination becomes a lane chip (self-loops skipped). Selected lane chips have a pin star; pinned lanes show as quick-select pills at the top across sessions.
+- **Files touched:** `src/components/LanePicker.tsx`, `src/core/settings-store.ts` (added `pinnedLanes`)
+
+### history-mirror
+
+- **Type:** infra
+- **Added:** 2026-05-26
+- **Status:** shipped
+- **Description:** Search history now writes to **both** SQLite (`search_history` table, durable across reinstalls) and a Zustand `historyMirror` slice (last 50 entries, in localStorage). The `/history` page reads from whichever has more rows. This kills the "history wiped after restart" complaint when running outside a packaged Tauri shell where SQLite isn't reachable.
+- **Files touched:** `src/skills/leads/handler.ts`, `src/core/settings-store.ts`, `src/pages/History.tsx`
+
+### palette-v2
+
+- **Type:** ui
+- **Added:** 2026-05-26
+- **Status:** shipped
+- **Description:** Reskinned to match the user's reference image. Deep dark slate background (`#161a26`), coral→orange gradient as the brand accent, much rounder corners everywhere (pill-shaped buttons + inputs, 16/22/28 px card radii). New `--gradient-accent` CSS variable powers `bg-gradient-accent` and `shadow-glow` utilities for hero affordances.
+- **Files touched:** `src/index.css`, `src/components/ui/{button,input,card}.tsx`

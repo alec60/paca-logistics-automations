@@ -3,9 +3,9 @@ import {
   PROVINCES,
   CITIES,
   TRUCK_TYPES,
-  LANE_PRESETS,
+  TERRITORY_CODES,
+  CITY_TO_PROVINCE,
   buildAllLanes,
-  isLanePreset,
 } from "../../src/skills/leads/data";
 
 describe("leads data", () => {
@@ -31,12 +31,14 @@ describe("leads data", () => {
     expect(buildAllLanes()).toHaveLength(156);
   });
 
-  it("has 18 lane presets", () => {
-    expect(LANE_PRESETS).toHaveLength(18);
+  it("has 3 territory codes", () => {
+    expect(TERRITORY_CODES).toEqual(["YT", "NT", "NU"]);
   });
 
-  it("isLanePreset matches the preset list", () => {
-    expect(isLanePreset("QC→ON")).toBe(true);
-    expect(isLanePreset("AB→NU")).toBe(false);
+  it("every city maps to a known province code", () => {
+    const codes = new Set(PROVINCES.map((p) => p.code));
+    for (const city of CITIES) {
+      expect(codes.has(CITY_TO_PROVINCE[city])).toBe(true);
+    }
   });
 });

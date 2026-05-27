@@ -45,30 +45,12 @@ export const PROVINCES = [
 ] as const;
 export type ProvinceCode = (typeof PROVINCES)[number]["code"];
 
-export const REGIONS = {
-  maritimes: ["NB", "NS", "PE", "NL"],
-  prairies: ["AB", "SK", "MB"],
-  western: ["BC", "AB"],
-  central: ["ON", "QC"],
-  territories: ["YT", "NT", "NU"],
-  all: PROVINCES.map((p) => p.code),
-} as const;
+export const TERRITORY_CODES = ["YT", "NT", "NU"] as const;
 
 export const SECTORS = ["N", "S", "E", "W"] as const;
 export type Sector = (typeof SECTORS)[number];
 
-export const CITIES = [
-  "Toronto", "Montréal", "Vancouver", "Calgary", "Edmonton", "Ottawa",
-  "Mississauga", "Winnipeg", "Québec City", "Hamilton", "Brampton", "Surrey",
-  "Kitchener", "Laval", "Halifax", "London", "Markham", "Vaughan", "Gatineau",
-  "Saskatoon", "Longueuil", "Burnaby", "Regina", "Richmond", "Oakville",
-  "Burlington", "Sherbrooke", "Oshawa", "Windsor", "Saint John", "Moncton",
-  "Fredericton", "St. John's", "Charlottetown", "Whitehorse", "Yellowknife",
-  "Iqaluit",
-] as const;
-export type City = (typeof CITIES)[number];
-
-// Build all 156 province→province permutations.
+// 13×12 = 156 lane permutations.
 export function buildAllLanes(): string[] {
   const codes = PROVINCES.map((p) => p.code);
   const out: string[] = [];
@@ -80,12 +62,47 @@ export function buildAllLanes(): string[] {
   return out;
 }
 
-export const LANE_PRESETS = [
-  "QC→ON", "ON→QC", "QC→NB", "NB→QC", "QC→NS", "NS→QC",
-  "AB→BC", "BC→AB", "SK→MB", "MB→SK", "ON→AB", "NB→NS",
-  "NS→NB", "ON→BC", "BC→ON", "AB→ON", "QC→NL", "NS→NL",
-] as const;
+// City → province mapping. Lets the city search filter by selected provinces.
+export const CITY_TO_PROVINCE: Record<string, ProvinceCode> = {
+  Toronto: "ON",
+  Montréal: "QC",
+  Vancouver: "BC",
+  Calgary: "AB",
+  Edmonton: "AB",
+  Ottawa: "ON",
+  Mississauga: "ON",
+  Winnipeg: "MB",
+  "Québec City": "QC",
+  Hamilton: "ON",
+  Brampton: "ON",
+  Surrey: "BC",
+  Kitchener: "ON",
+  Laval: "QC",
+  Halifax: "NS",
+  London: "ON",
+  Markham: "ON",
+  Vaughan: "ON",
+  Gatineau: "QC",
+  Saskatoon: "SK",
+  Longueuil: "QC",
+  Burnaby: "BC",
+  Regina: "SK",
+  Richmond: "BC",
+  Oakville: "ON",
+  Burlington: "ON",
+  Sherbrooke: "QC",
+  Oshawa: "ON",
+  Windsor: "ON",
+  "Saint John": "NB",
+  Moncton: "NB",
+  Fredericton: "NB",
+  "St. John's": "NL",
+  Charlottetown: "PE",
+  Whitehorse: "YT",
+  Yellowknife: "NT",
+  Iqaluit: "NU",
+};
 
-export function isLanePreset(lane: string): boolean {
-  return (LANE_PRESETS as readonly string[]).includes(lane);
-}
+export const CITIES = Object.keys(CITY_TO_PROVINCE);
+export type City = string;
+

@@ -1,49 +1,58 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg:               #09090b;
-  --color-surface-1:        #131316;
-  --color-surface-2:        #1c1c20;
-  --color-surface-3:        #26262b;
-  --color-border-subtle:    #27272a;
-  --color-border:           #3f3f46;
-  --color-border-strong:    #52525b;
-  --color-text:             #fafafa;
-  --color-text-muted:       #a1a1aa;
-  --color-text-dim:         #71717a;
-  --color-accent:           #f97316;
-  --color-accent-hover:     #ea580c;
-  --color-accent-bg:        rgba(249, 115, 22, 0.12);
-  --color-accent-ring:      rgba(249, 115, 22, 0.32);
-  --color-accent-text:      #0a0a0b;
-  --color-success:          #22c55e;
-  --color-warning:          #eab308;
-  --color-danger:           #ef4444;
+  /* Deep dark slate — much closer to the reference image. */
+  --color-bg:               #161a26;
+  --color-surface-1:        #1e2230;
+  --color-surface-2:        #262b3b;
+  --color-surface-3:        #323849;
+  --color-border-subtle:    #262b3b;
+  --color-border:           #3a4054;
+  --color-border-strong:    #4a5167;
+
+  --color-text:             #eef0f6;
+  --color-text-muted:       #9098ac;
+  --color-text-dim:         #6a728a;
+
+  /* Coral-to-orange accent — pulled from the reference. */
+  --color-accent:           #ff7559;
+  --color-accent-hover:     #ff6044;
+  --color-accent-bg:        rgba(255, 117, 89, 0.14);
+  --color-accent-ring:      rgba(255, 117, 89, 0.36);
+  --color-accent-text:      #1a1f2e;
+  --color-accent-start:     #ff6b6b;
+  --color-accent-end:       #ffa94d;
+
+  --color-success:          #4ade80;
+  --color-warning:          #fbbf24;
+  --color-danger:           #f87171;
   --color-info:             #38bdf8;
+
   --font-sans:              "Inter", system-ui, sans-serif;
   --font-mono:              "JetBrains Mono", ui-monospace, monospace;
-  --radius-sm:              6px;
-  --radius:                 10px;
-  --radius-lg:              14px;
-  --radius-xl:              20px;
+
+  --radius-sm:              10px;
+  --radius:                 16px;
+  --radius-lg:              22px;
+  --radius-xl:              28px;
+  --radius-pill:            999px;
 }
 
 @media (prefers-color-scheme: light) {
   @theme {
-    --color-bg:             #fafafa;
+    --color-bg:             #ebedf3;
     --color-surface-1:      #ffffff;
-    --color-surface-2:      #f4f4f5;
-    --color-surface-3:      #e4e4e7;
-    --color-border-subtle:  #e4e4e7;
-    --color-border:         #d4d4d8;
-    --color-border-strong:  #a1a1aa;
-    --color-text:           #09090b;
-    --color-text-muted:     #52525b;
-    --color-text-dim:       #71717a;
+    --color-surface-2:      #e3e6ee;
+    --color-surface-3:      #d0d5e0;
+    --color-border-subtle:  #dcdfe7;
+    --color-border:         #bdc2cf;
+    --color-border-strong:  #8c93a4;
+    --color-text:           #1c2030;
+    --color-text-muted:     #525a72;
+    --color-text-dim:       #7c849b;
   }
 }
 
-/* shadcn-compat tokens (mapped to design tokens for primitives that read --background/--foreground) */
 @layer base {
   :root {
     --background: var(--color-bg);
@@ -66,6 +75,12 @@
     --input: var(--color-border-subtle);
     --ring: var(--color-accent-ring);
     --radius: var(--radius);
+
+    --gradient-accent: linear-gradient(
+      135deg,
+      var(--color-accent-start) 0%,
+      var(--color-accent-end) 100%
+    );
   }
 
   html,
@@ -88,8 +103,27 @@
     border-color: var(--color-border-subtle);
   }
 
-  /* Animations capped at 120ms by convention */
   * {
     transition-duration: 120ms;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-accent {
+    background-image: var(--gradient-accent);
+  }
+  .text-gradient-accent {
+    background-image: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .shadow-soft {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.03) inset,
+      0 8px 28px rgba(0, 0, 0, 0.32);
+  }
+  .shadow-glow {
+    box-shadow: 0 6px 24px rgba(255, 117, 89, 0.32);
   }
 }

@@ -4,6 +4,7 @@ import { buildMessagesRequest } from "./prompt";
 import { callSidecar, SidecarError } from "../../core/claude-client";
 import { blacklistApi, budgetApi } from "../../core/context";
 import { getDb } from "../../core/db";
+import { useSettingsStore } from "../../core/settings-store";
 import { BudgetError, RateLimitError } from "../../core/types";
 import { computeCostUsd, estimateLeadSearchCost } from "../../../server/lib/cost";
 
@@ -106,15 +107,30 @@ export async function handle(
     blacklisted_count: blacklistedCount,
   };
 
-  // 6. Persist to search_history.
+  // 6. Persist to search_history (SQLite for durability + Zustand mirror for
+  // browser-mode fallback / quick rendering).
+  const historyEntry = {
+    skill_slug: "leads",
+    params_json: JSON.stringify(params),
+    cost_usd: realCost,
+    searched_at: new Date().toISOString(),
+  };
   try {
     const db = await getDb();
     await db.execute(
       "INSERT INTO search_history (skill_slug, params_json, result_json, cost_usd) VALUES ($1, $2, $3, $4)",
-      ["leads", JSON.stringify(params), JSON.stringify(finalResult), realCost],
+      ["leads", historyEntry.params_json, JSON.stringify(finalResult), realCost],
     );
   } catch {
-    // history is best-effort
+    // SQLite unavailable (e.g. browser preview). The Zustand mirror covers it.
+  }
+  try {
+    useSettingsStore.getState().pushHistoryMirror({
+      id: Date.now(),
+      ...historyEntry,
+    });
+  } catch {
+    // best-effort
   }
 
   return finalResult;
