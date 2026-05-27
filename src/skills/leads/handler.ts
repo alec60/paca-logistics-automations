@@ -1,10 +1,10 @@
 import type { LeadsParams, LeadsResult, Carrier } from "./schemas";
 import { LeadsResult as LeadsResultSchema } from "./schemas";
 import { buildMessagesRequest } from "./prompt";
-import { callSidecar } from "../../core/claude-client";
+import { callSidecar, SidecarError } from "../../core/claude-client";
 import { blacklistApi, budgetApi } from "../../core/context";
 import { getDb } from "../../core/db";
-import { BudgetError } from "../../core/types";
+import { BudgetError, RateLimitError } from "../../core/types";
 import { computeCostUsd, estimateLeadSearchCost } from "../../../server/lib/cost";
 
 interface ProxyResponse {
@@ -55,10 +55,27 @@ export async function handle(
 
   // 2. Call sidecar → Anthropic with web_search.
   const request = buildMessagesRequest(params, opts.locale);
-  const response = await callSidecar<ProxyResponse>("/api/claude/messages", {
-    method: "POST",
-    body: { apiKey: opts.apiKey, request },
-  });
+  let response: ProxyResponse;
+  try {
+    response = await callSidecar<ProxyResponse>("/api/claude/messages", {
+      method: "POST",
+      body: { apiKey: opts.apiKey, request },
+    });
+  } catch (err) {
+    // Map Anthropic 429s to a domain-specific error so the UI can render
+    // a clean retry banner instead of the raw rate-limit JSON.
+    if (err instanceof SidecarError && err.status === 429) {
+      const m = /(\d+)\s*input tokens/.exec(err.message) ?? null;
+      const retryAfter = m ? 60 : 60;
+      throw new RateLimitError(
+        opts.locale === "fr"
+          ? `Limite de débit Anthropic atteinte (Niveau 1 : 30 000 jetons d'entrée/min). Réessayez dans ~${retryAfter} s, ou réduisez le nombre de pistes demandées.`
+          : `Anthropic rate limit hit (Tier 1: 30k input tokens/min). Retry in ~${retryAfter}s, or lower the lead count.`,
+        retryAfter,
+      );
+    }
+    throw err;
+  }
 
   // 3. Parse the JSON the model returned.
   const text = extractText(response.message);

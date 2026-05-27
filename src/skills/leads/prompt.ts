@@ -54,7 +54,8 @@ export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
 
   return {
     model: ANTHROPIC_MODEL,
-    max_tokens: 4096,
+    // Conservative for Tier 1 (8k OTPM cap). Plenty for ~10 carriers as JSON.
+    max_tokens: 2048,
     system: SYSTEM,
     tools: [WEB_SEARCH_TOOL],
     messages: [{ role: "user" as const, content: userPrompt }],

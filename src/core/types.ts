@@ -63,3 +63,12 @@ export class BudgetError extends Error {
     this.name = "BudgetError";
   }
 }
+
+export class RateLimitError extends Error {
+  retryAfterSeconds?: number;
+  constructor(message: string, retryAfterSeconds?: number) {
+    super(message);
+    this.name = "RateLimitError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
