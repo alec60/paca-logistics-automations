@@ -57,3 +57,23 @@ export async function callSkill<T>(req: SkillCallRequest): Promise<T> {
     body: { params: req.params, apiKey: req.apiKey, locale: req.locale },
   });
 }
+
+// Tests an Anthropic API key with a 1-token ping. The sidecar makes the
+// actual API call so the key never reaches DevTools network logs.
+export interface TestKeyResult {
+  ok: boolean;
+  model?: string;
+  status?: number;
+  error?: string;
+  keyPrefix?: string;
+  keyLength?: number;
+  startsRight?: boolean;
+  hint?: string;
+}
+
+export async function testApiKey(apiKey: string): Promise<TestKeyResult> {
+  return callSidecar<TestKeyResult>("/api/claude/test", {
+    method: "POST",
+    body: { apiKey },
+  });
+}

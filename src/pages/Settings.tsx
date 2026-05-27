@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Check } from "lucide-react";
+import { Check, Plug, AlertTriangle } from "lucide-react";
 import { useSettingsStore } from "../core/settings-store";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -16,6 +16,7 @@ import {
 import { BlacklistManager } from "../components/BlacklistManager";
 import { setMonthlyLimit } from "../core/budget";
 import { listSkills } from "../core/skill-registry";
+import { testApiKey, type TestKeyResult } from "../core/claude-client";
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
@@ -32,6 +33,8 @@ export function SettingsPage() {
   const [draftKey, setDraftKey] = useState(apiKey);
   const [draftBudget, setDraftBudget] = useState(monthlyBudgetUsd);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<TestKeyResult | null>(null);
 
   useEffect(() => setDraftKey(apiKey), [apiKey]);
   useEffect(() => setDraftBudget(monthlyBudgetUsd), [monthlyBudgetUsd]);
@@ -58,6 +61,29 @@ export function SettingsPage() {
       }
     }
   }
+
+  async function testKey() {
+    const key = draftKey.trim() || apiKey;
+    if (!key) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const r = await testApiKey(key);
+      setTestResult(r);
+    } catch (err) {
+      setTestResult({
+        ok: false,
+        error:
+          (err as Error).message +
+          " — the sidecar isn't reachable. Make sure `pnpm dev` is running both Vite and the sidecar.",
+      });
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  const keyShapeWarn =
+    draftKey.trim().length > 0 && !draftKey.trim().startsWith("sk-ant-");
 
   return (
     <form
@@ -96,8 +122,63 @@ export function SettingsPage() {
           {apiKey && (
             <span className="text-xs text-text-dim">
               {locale === "fr" ? "Clé actuelle : " : "Current key: "}
-              <span className="font-mono">…{apiKey.slice(-6)}</span>
+              <span className="font-mono">
+                {apiKey.slice(0, 8)}…{apiKey.slice(-6)} ({apiKey.length}{" "}
+                {locale === "fr" ? "car." : "chars"})
+              </span>
             </span>
+          )}
+
+          {keyShapeWarn && (
+            <div className="flex items-start gap-2 rounded border border-warning/40 bg-warning/10 p-2 text-xs text-warning">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                {locale === "fr"
+                  ? "Cette clé ne commence pas par « sk-ant- ». Les clés API Anthropic proviennent de console.anthropic.com, PAS de claude.ai."
+                  : "This key doesn't start with 'sk-ant-'. Anthropic API keys come from console.anthropic.com, NOT claude.ai."}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={testKey}
+              disabled={testing || (!draftKey.trim() && !apiKey)}
+            >
+              <Plug className="h-3.5 w-3.5" />
+              {testing
+                ? locale === "fr"
+                  ? "Test en cours…"
+                  : "Testing…"
+                : locale === "fr"
+                  ? "Tester la clé"
+                  : "Test API key"}
+            </Button>
+            {testResult && (
+              <span
+                className={
+                  "text-xs " + (testResult.ok ? "text-success" : "text-danger")
+                }
+              >
+                {testResult.ok
+                  ? `✓ ${locale === "fr" ? "Clé valide" : "Key works"} — ${testResult.model}`
+                  : `✗ ${testResult.status ?? ""} ${testResult.error}`}
+              </span>
+            )}
+          </div>
+          {testResult && !testResult.ok && testResult.hint && (
+            <div className="rounded border border-border-subtle bg-surface-2 p-2 text-xs text-text-muted">
+              {testResult.hint}
+            </div>
+          )}
+          {testResult && !testResult.ok && (
+            <div className="text-[10px] font-mono text-text-dim">
+              prefix={testResult.keyPrefix} length={testResult.keyLength}{" "}
+              startsRight={String(testResult.startsRight)}
+            </div>
           )}
         </CardContent>
       </Card>
