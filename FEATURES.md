@@ -106,25 +106,25 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 
 - **Type:** ui
 - **Added:** 2026-05-26
-- **Status:** shipped
-- **Description:** Stylized SVG map of Canada used in the leads ParamView. 10 provinces as clickable rounded polygons positioned roughly geographically (BC tall on the west, prairies as a row, ON/QC large in the middle, NL detached on the east, NB/NS/PE clustered as Maritimes). On selection, the province's abbreviation is replaced inline by an NSEW sector cluster + center deselect button.
+- **Status:** shipped (revised 2026-05-27)
+- **Description:** Stylized SVG map of Canada used in the leads ParamView. All 13 provinces + territories drawn as cubic-Bezier polygons positioned roughly geographically (YT/NT/NU territories band on top, BC tall on the west, prairies as a row, ON/QC large in the middle, NL detached on the east, NB/NS/PE clustered as Maritimes). On selection, the abbreviation is replaced inline by an NSEW sector cluster + center deselect.
 - **Files touched:** `src/components/CanadaMap.tsx`
 
-### territory-row
+### region-quick-picker
 
 - **Type:** ui
-- **Added:** 2026-05-26
+- **Added:** 2026-05-27
 - **Status:** shipped
-- **Description:** Distinct labeled pill row above the Canada map for YT / NT / NU. Selecting a territory pill expands it inline to show NSEW sector toggles + a deselect ×, mirroring the province-on-map interaction.
-- **Files touched:** `src/components/TerritoryRow.tsx`
+- **Description:** Pill row above the Canada map for one-tap region presets (Western, Prairies, Central, Maritimes, Territories, All Canada). Tapping a region adds its provinces to the selection; tapping again removes them. Replaces the earlier dedicated territory row — territories now live on the map itself.
+- **Files touched:** `src/components/RegionPicker.tsx`, `src/skills/leads/data.ts` (added `REGIONS`)
 
 ### city-search
 
 - **Type:** ui
 - **Added:** 2026-05-26
-- **Status:** shipped
-- **Description:** Type-ahead city picker that auto-filters to only cities in the currently selected provinces. Each row has a pin star — pinned cities sort to the top of the list and persist across sessions via Zustand → localStorage.
-- **Files touched:** `src/components/CitySearch.tsx`, `src/core/settings-store.ts` (added `pinnedCities`)
+- **Status:** shipped (revised 2026-05-27)
+- **Description:** Type-ahead city picker that auto-filters to cities in the currently selected provinces. Dropdown stays hidden until the user types 2+ characters or selects at least one province (the database is now 250+ Canadian cities — listing everything would be useless). Each row has a pin star; pinned cities sort to the top and persist across sessions via Zustand → localStorage. Backed by `CITY_TO_PROVINCE` map covering all 13 provinces.
+- **Files touched:** `src/components/CitySearch.tsx`, `src/skills/leads/data.ts` (`CITY_TO_PROVINCE`), `src/core/settings-store.ts` (added `pinnedCities`)
 
 ### lane-picker
 
@@ -146,6 +146,6 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 
 - **Type:** ui
 - **Added:** 2026-05-26
-- **Status:** shipped
-- **Description:** Reskinned to match the user's reference image. Deep dark slate background (`#161a26`), coral→orange gradient as the brand accent, much rounder corners everywhere (pill-shaped buttons + inputs, 16/22/28 px card radii). New `--gradient-accent` CSS variable powers `bg-gradient-accent` and `shadow-glow` utilities for hero affordances.
+- **Status:** shipped (revised 2026-05-27)
+- **Description:** Reskinned to match the user's reference image. Deep dark slate background (`#161a26`), coral→orange gradient as the brand accent, much rounder corners everywhere (pill-shaped buttons + inputs, 16/22/28 px card radii). New `--gradient-accent` CSS variable powers `bg-gradient-accent` and `shadow-glow` utilities for hero affordances. Dark mode is locked (no `prefers-color-scheme` auto-switch) until a Settings toggle ships.
 - **Files touched:** `src/index.css`, `src/components/ui/{button,input,card}.tsx`

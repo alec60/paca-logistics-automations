@@ -4,7 +4,7 @@ import { useSettingsStore } from "../../core/settings-store";
 import { Button } from "../../components/ui/button";
 import { PillGroup } from "../../components/PillGroup";
 import { CanadaMap } from "../../components/CanadaMap";
-import { TerritoryRow } from "../../components/TerritoryRow";
+import { RegionPicker } from "../../components/RegionPicker";
 import { CitySearch } from "../../components/CitySearch";
 import { LanePicker } from "../../components/LanePicker";
 import {
@@ -131,11 +131,13 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
         label={locale === "fr" ? "Provinces et territoires" : "Provinces & territories"}
       >
         <div className="flex flex-col gap-3">
-          <TerritoryRow
+          <RegionPicker
             selectedProvinces={provinces}
-            sectors={sectors}
-            onToggleProvince={toggleProvince}
-            onToggleSector={toggleSector}
+            onSet={(codes) => {
+              setProvinces(codes);
+              // Drop sectors for any province no longer selected.
+              setSectors((s) => s.filter((x) => codes.some((c) => x.startsWith(`${c}-`))));
+            }}
           />
           <CanadaMap
             selectedProvinces={provinces}

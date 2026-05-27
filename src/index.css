@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  /* Deep dark slate — much closer to the reference image. */
+  /* Deep dark slate — locked dark mode. The reference image is dark and the
+     team works inside Tauri's webview which inconsistently reports OS theme
+     preference. Light mode can come back later as an explicit Settings toggle. */
   --color-bg:               #161a26;
   --color-surface-1:        #1e2230;
   --color-surface-2:        #262b3b;
@@ -38,23 +40,12 @@
   --radius-pill:            999px;
 }
 
-@media (prefers-color-scheme: light) {
-  @theme {
-    --color-bg:             #ebedf3;
-    --color-surface-1:      #ffffff;
-    --color-surface-2:      #e3e6ee;
-    --color-surface-3:      #d0d5e0;
-    --color-border-subtle:  #dcdfe7;
-    --color-border:         #bdc2cf;
-    --color-border-strong:  #8c93a4;
-    --color-text:           #1c2030;
-    --color-text-muted:     #525a72;
-    --color-text-dim:       #7c849b;
-  }
-}
+/* No prefers-color-scheme override — dark is the default and only theme until
+   a manual Settings toggle ships. */
 
 @layer base {
   :root {
+    color-scheme: dark;
     --background: var(--color-bg);
     --foreground: var(--color-text);
     --card: var(--color-surface-1);
@@ -87,6 +78,10 @@
   body,
   #root {
     height: 100%;
+  }
+
+  html {
+    background-color: var(--color-bg);
   }
 
   body {

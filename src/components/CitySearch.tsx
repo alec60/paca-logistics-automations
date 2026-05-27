@@ -21,20 +21,24 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // Stay hidden until the user gives us a signal: at least 2 typed chars or
+    // any province narrowing. With 300+ cities loaded we can't dump them all.
+    if (q.length < 2 && selectedProvinces.length === 0) return [];
+
     const provinceSet = new Set(selectedProvinces);
     const provinceFilter = provinceSet.size === 0
       ? () => true
       : (city: string) => provinceSet.has(CITY_TO_PROVINCE[city]);
 
-    return CITIES.filter((c) => provinceFilter(c))
+    return CITIES.filter(provinceFilter)
       .filter((c) => (q ? c.toLowerCase().includes(q) : true))
-      // Pinned first, alphabetical within each group.
       .sort((a, b) => {
         const ap = pinned.includes(a);
         const bp = pinned.includes(b);
         if (ap !== bp) return ap ? -1 : 1;
         return a.localeCompare(b);
-      });
+      })
+      .slice(0, 60); // cap dropdown size
   }, [query, selectedProvinces, pinned]);
 
   return (

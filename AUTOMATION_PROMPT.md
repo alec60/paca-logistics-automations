@@ -13,6 +13,33 @@ You are extending the **Transport Paca** desktop app (Tauri 2 + React 18 + TypeS
 3. `CLAUDE.md` — conventions, naming, file-size cap (500 lines).
 4. `src/skills/leads/` — the **reference implementation**. Mirror its structure exactly.
 
+## Tools available in this session
+
+Use the right tool for the job. Don't burn tokens on the wrong tier.
+
+| Tool family | When to use it | When to skip it |
+|---|---|---|
+| **Direct file edits** (Read / Edit / Write / Glob / Grep) | Default for all skill code. ~80% of the work. | Never skip for skill source — these are fastest. |
+| **Bash** (`pnpm typecheck`, `pnpm test`, `pnpm build`, `git`) | Validate after each substantial change. Commit at the end. | For one-shot file reads — use the Read tool. |
+| **Claude in Chrome MCP** (`mcp__Claude_in_Chrome__*`) | UI work where you need to *see* the result — match a design, debug a layout bug, verify a click flow, screenshot a state for the user. Launch `pnpm dev:vite` background, then `navigate` → `screenshot` → iterate. **Use `browser_batch` to combine navigate+wait+screenshot in one round-trip.** | Don't open a browser to typecheck or to read a file. |
+| **Vitest + Playwright** (via `pnpm test` / `pnpm test:e2e`) | Add unit tests for Zod schemas, cost math, anything pure. Add a Playwright spec under `tests/e2e/<slug>.spec.ts` for the ParamView render path. | Don't write integration tests that need the Tauri shell (SQLite) running — those need `tauri-driver` which isn't wired yet. |
+| **Computer Use MCP** (`mcp__computer-use__*`) | Native desktop windows (the actual Tauri-built app, Finder/Explorer, native installers). | Anything inside the browser — Chrome MCP is faster and DOM-aware. |
+| **Ruflo MCP** (`mcp__ruflo__*`) | Multi-agent coordination, swarm patterns, semantic memory across sessions. Useful if the new automation is genuinely 4+ truly independent files (rare). | Single-skill blocks — direct edits win on speed and clarity. |
+| **Claude Preview MCP** (`mcp__Claude_Preview__*`) | Mostly redundant with Chrome MCP — skip unless Chrome isn't connected. | Default. |
+
+**For UI work specifically:** launch `pnpm dev:vite` in the background, then plant a placeholder API key in localStorage via Chrome MCP's `javascript_tool` so you can navigate past the first-run gate without needing real credentials:
+
+```js
+localStorage.setItem("transport-paca-settings", JSON.stringify({
+  state: { apiKey: "sk-ant-PLACEHOLDER", locale: "en", theme: "system",
+           monthlyBudgetUsd: 20, devMode: false, pinnedCities: [],
+           pinnedLanes: [], historyMirror: [] },
+  version: 0,
+}));
+```
+
+Then `navigate` to `http://localhost:1420/skills/<slug>` and iterate. **Do not commit UI changes you haven't visually verified at least once** — that's the loop break that produced the "still rectangular boxes" bug.
+
 ## 1. Clarify the automation with the user (one short paragraph)
 
 Ask in plain language:
@@ -103,11 +130,12 @@ Do **not** tag or push. Tell the user the slug, what to test, and where it lives
 ## Hard rules
 
 - **NEVER** commit real carrier names, phone numbers, emails, addresses, client names, prices, margins, quote data, team members' real names, or API keys (even revoked).
-- **NEVER** hardcode colors — use design tokens (`bg-surface-1`, `text-accent`, etc.) from `src/index.css @theme`.
+- **NEVER** hardcode colors — use design tokens (`bg-surface-1`, `text-accent`, `bg-gradient-accent`, etc.) from `src/index.css @theme`. The current palette is dark slate + coral-orange gradient accent + pill-shaped buttons. Don't drift.
 - **NEVER** skip the `ctx.budget.canAffordEstimate()` pre-check if the handler calls Anthropic.
 - **NEVER** skip the `ctx.blacklist.filterCarriers()` post-filter if the result contains companies.
 - **NEVER** create a file over 500 lines. Split it.
 - **NEVER** edit `src/core/skill-registry.ts`, `src/router.tsx`, or `src/components/Sidebar.tsx` — auto-discovery handles wiring.
+- **NEVER** ship UI changes without using Chrome MCP to verify them visually at least once.
 - **ALWAYS** validate every external response (Anthropic, sidecar, DB) with Zod at the boundary.
 - **ALWAYS** include both `en` and `fr` translations.
 - **ALWAYS** append to `FEATURES.md` before committing.
