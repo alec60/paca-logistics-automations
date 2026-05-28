@@ -13,10 +13,12 @@ const buttonVariants = cva(
         accent:
           "bg-gradient-accent text-accent-text shadow-glow hover:brightness-110",
         secondary:
-          "bg-surface-2 text-text hover:bg-surface-3",
+          "bg-input-bg text-input-text hover:bg-input-bg-hover",
+        // Outline lives inside light cards now — dark text on the input bg.
         outline:
-          "border border-border bg-transparent text-text hover:bg-surface-2",
-        ghost: "text-text-muted hover:bg-surface-2 hover:text-text",
+          "bg-input-bg text-input-text hover:bg-input-bg-hover",
+        ghost:
+          "text-input-placeholder hover:bg-menu-bg-strong hover:text-input-text",
         destructive: "bg-danger text-white hover:opacity-90",
         link: "text-accent underline-offset-4 hover:underline rounded-md",
       },

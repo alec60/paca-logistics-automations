@@ -17,15 +17,15 @@
   --color-text-dim:         #6a728a;
 
   /* "Usable menus" — the cards / surfaces the user interacts with.
-     Per the reference (login card): the card itself is light off-white;
-     inputs inside are a slightly darker shade so you read the layering
-     without needing borders. Text on these light surfaces is dark slate. */
-  --color-menu-bg:          #eef0f4;
-  --color-menu-bg-strong:   #e3e6ee;
-  --color-input-bg:         #dce0e8;
-  --color-input-bg-hover:   #cfd4de;
+     Per the reference: card itself is near-white with a faint cool tint,
+     and the input pills inside are a clearly bluish-grey so the layering
+     reads at a glance. Text on these light surfaces is dark slate. */
+  --color-menu-bg:          #f6f8fc;
+  --color-menu-bg-strong:   #e9edf4;
+  --color-input-bg:         #bcc4d2;
+  --color-input-bg-hover:   #aeb6c5;
   --color-input-text:       #1c2030;
-  --color-input-placeholder:#6a728a;
+  --color-input-placeholder:#525c70;
 
   /* Coral-to-orange accent — pulled from the reference. */
   --color-accent:           #ff7559;
