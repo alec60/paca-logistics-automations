@@ -182,7 +182,9 @@ export async function callSidecarUnauth<T>(
     const trimmed = apiKey.trim();
     const startsRight = trimmed.startsWith("sk-ant-");
     try {
-      const msg = await rawAnthropic<{ model: string }>("/v1/messages", {
+      // Use /api/claude/messages so rawAnthropic's path mapper produces
+      // https://api.anthropic.com/v1/messages — NOT /v1/v1/messages.
+      const msg = await rawAnthropic<{ model: string }>("/api/claude/messages", {
         method: "POST",
         apiKey: trimmed,
         body: {
