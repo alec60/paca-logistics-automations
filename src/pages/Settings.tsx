@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Check, Plug, AlertTriangle, Download, Upload, KeyRound } from "lucide-react";
+import { Check, Plug, AlertTriangle, Download, Upload } from "lucide-react";
 import { useSettingsStore } from "../core/settings-store";
 import { useRuntimeSecrets } from "../core/runtime-secrets";
-import { useLockStore } from "../core/lock-store";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -33,7 +32,6 @@ export function SettingsPage() {
   const setDevMode = useSettingsStore((s) => s.setDevMode);
   const exportSnapshot = useSettingsStore((s) => s.exportSnapshot);
   const importSnapshot = useSettingsStore((s) => s.importSnapshot);
-  const changePasscode = useLockStore((s) => s.changePasscode);
 
   const [draftKey, setDraftKey] = useState(apiKey);
   const [draftBudget, setDraftBudget] = useState(monthlyBudgetUsd);
@@ -41,9 +39,6 @@ export function SettingsPage() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestKeyResult | null>(null);
   const [importMsg, setImportMsg] = useState<string | null>(null);
-  const [oldPass, setOldPass] = useState("");
-  const [newPass, setNewPass] = useState("");
-  const [passMsg, setPassMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setDraftKey(apiKey), [apiKey]);
@@ -137,19 +132,6 @@ export function SettingsPage() {
     };
     reader.readAsText(file);
     e.target.value = ""; // allow re-selecting the same file
-  }
-
-  async function doChangePasscode(e: React.FormEvent) {
-    e.preventDefault();
-    setPassMsg(null);
-    const r = await changePasscode(oldPass, newPass);
-    if (r.ok) {
-      setPassMsg("Passcode updated.");
-      setOldPass("");
-      setNewPass("");
-    } else {
-      setPassMsg(r.reason ?? "Change failed.");
-    }
   }
 
   const keyShapeWarn =
@@ -282,50 +264,6 @@ export function SettingsPage() {
             value={draftBudget}
             onChange={(e) => setDraftBudget(Number(e.target.value))}
           />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <KeyRound className="mr-2 inline h-4 w-4" />
-            {locale === "fr" ? "Passcode" : "Passcode"}
-          </CardTitle>
-          <CardDescription>
-            {locale === "fr"
-              ? "Changer le passcode utilisé pour déchiffrer cette installation."
-              : "Change the passcode that unlocks this install."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2 sm:flex-row" onClick={(e) => e.stopPropagation()}>
-            <Input
-              type="password"
-              value={oldPass}
-              onChange={(e) => setOldPass(e.target.value)}
-              placeholder={locale === "fr" ? "Passcode actuel" : "Current passcode"}
-              autoComplete="current-password"
-            />
-            <Input
-              type="password"
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
-              placeholder={locale === "fr" ? "Nouveau passcode" : "New passcode"}
-              autoComplete="new-password"
-            />
-            <Button type="button" onClick={doChangePasscode}>
-              {locale === "fr" ? "Mettre à jour" : "Update"}
-            </Button>
-          </div>
-          {passMsg && (
-            <div
-              className={
-                "mt-2 text-xs " + (passMsg === "Passcode updated." ? "text-success" : "text-danger")
-              }
-            >
-              {passMsg}
-            </div>
-          )}
         </CardContent>
       </Card>
 
