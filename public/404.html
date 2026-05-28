@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Transport Paca</title>
+    <script>
+      // SPA fallback for GitHub Pages: any unknown sub-path lands here.
+      // Redirect to / with the original path preserved in a query param so
+      // the React router can pick it up after boot.
+      (function () {
+        var path = window.location.pathname.replace(/^\/paca-logistics-automations/, "");
+        var qs = window.location.search;
+        var hash = window.location.hash;
+        window.location.replace(
+          "/paca-logistics-automations/?p=" + encodeURIComponent(path + qs + hash),
+        );
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
