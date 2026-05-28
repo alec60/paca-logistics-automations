@@ -1,2 +1,9 @@
+# Single-package "workspace" — pnpm 9+ requires `packages` whenever this
+# file exists. We're not a monorepo; we just need this file so allowBuilds
+# can opt the esbuild postinstall script in (pnpm blocks unknown postinstalls
+# by default in CI's `--frozen-lockfile` mode).
+packages:
+  - "."
+
 allowBuilds:
   esbuild: true
