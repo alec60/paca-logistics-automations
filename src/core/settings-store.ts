@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import type { Ciphertext } from "./crypto";
 
 export type Theme = "system" | "dark" | "light";
 export type Locale = "en" | "fr";
@@ -13,16 +14,22 @@ export interface HistoryEntry {
 }
 
 export interface SettingsState {
-  apiKey: string;
+  /**
+   * Encrypted ciphertext for the Anthropic API key.
+   * Decrypted into `runtime-secrets.apiKey` after the lock screen unlocks.
+   * Persisted to localStorage as `{ iv, ct }` base64.
+   */
+  apiKeyEncrypted: Ciphertext | null;
+
   locale: Locale;
   theme: Theme;
   monthlyBudgetUsd: number;
   devMode: boolean;
   pinnedCities: string[];
   pinnedLanes: string[];
-  historyMirror: HistoryEntry[]; // last 50, localStorage fallback for SQLite
+  historyMirror: HistoryEntry[];
 
-  setApiKey: (key: string) => void;
+  setApiKeyEncrypted: (c: Ciphertext | null) => void;
   setLocale: (locale: Locale) => void;
   setTheme: (theme: Theme) => void;
   setMonthlyBudgetUsd: (usd: number) => void;
@@ -33,12 +40,17 @@ export interface SettingsState {
   pushHistoryMirror: (entry: HistoryEntry) => void;
   clearHistoryMirror: () => void;
   reset: () => void;
+
+  // Export/import of the persisted state — used for manual cross-device sync
+  // until the team picks a backend (Cloudflare Worker / Supabase / etc.).
+  exportSnapshot: () => string;
+  importSnapshot: (json: string) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      apiKey: "",
+      apiKeyEncrypted: null,
       locale: "fr",
       theme: "system",
       monthlyBudgetUsd: 20,
@@ -47,7 +59,7 @@ export const useSettingsStore = create<SettingsState>()(
       pinnedLanes: [],
       historyMirror: [],
 
-      setApiKey: (apiKey) => set({ apiKey }),
+      setApiKeyEncrypted: (apiKeyEncrypted) => set({ apiKeyEncrypted }),
       setLocale: (locale) => set({ locale }),
       setTheme: (theme) => set({ theme }),
       setMonthlyBudgetUsd: (monthlyBudgetUsd) => set({ monthlyBudgetUsd }),
@@ -77,7 +89,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       reset: () =>
         set({
-          apiKey: "",
+          apiKeyEncrypted: null,
           locale: "fr",
           theme: "system",
           monthlyBudgetUsd: 20,
@@ -86,6 +98,44 @@ export const useSettingsStore = create<SettingsState>()(
           pinnedLanes: [],
           historyMirror: [],
         }),
+
+      exportSnapshot: () => {
+        const s = get();
+        const data = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          state: {
+            apiKeyEncrypted: s.apiKeyEncrypted,
+            locale: s.locale,
+            theme: s.theme,
+            monthlyBudgetUsd: s.monthlyBudgetUsd,
+            pinnedCities: s.pinnedCities,
+            pinnedLanes: s.pinnedLanes,
+            historyMirror: s.historyMirror,
+          },
+        };
+        return JSON.stringify(data, null, 2);
+      },
+
+      importSnapshot: (json) => {
+        const parsed = JSON.parse(json) as {
+          version?: number;
+          state?: Partial<SettingsState>;
+        };
+        if (parsed.version !== 1 || !parsed.state) {
+          throw new Error("Unrecognized snapshot format (expected version: 1).");
+        }
+        const s = parsed.state;
+        set({
+          apiKeyEncrypted: s.apiKeyEncrypted ?? get().apiKeyEncrypted,
+          locale: s.locale ?? get().locale,
+          theme: s.theme ?? get().theme,
+          monthlyBudgetUsd: s.monthlyBudgetUsd ?? get().monthlyBudgetUsd,
+          pinnedCities: s.pinnedCities ?? get().pinnedCities,
+          pinnedLanes: s.pinnedLanes ?? get().pinnedLanes,
+          historyMirror: s.historyMirror ?? get().historyMirror,
+        });
+      },
     }),
     {
       name: "transport-paca-settings",

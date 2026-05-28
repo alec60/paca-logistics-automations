@@ -3,8 +3,17 @@ import { Sidebar } from "./components/Sidebar";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { CommandPalette } from "./components/CommandPalette";
 import { DevPanel } from "./components/DevPanel";
+import { LockScreen } from "./components/LockScreen";
+import { LockButton } from "./components/LockButton";
+import { useLockStore } from "./core/lock-store";
 
 export default function App() {
+  // Lock gate — must come BEFORE the rest of the app renders. There's no
+  // "skip" path: every UI consumer reads `unlockedAt` to verify the key is
+  // in memory.
+  const unlockedAt = useLockStore((s) => s.unlockedAt);
+  if (!unlockedAt) return <LockScreen />;
+
   return (
     <div className="flex h-full">
       <Sidebar />
@@ -18,6 +27,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
+            <LockButton />
           </div>
         </header>
         <main className="flex-1 overflow-auto bg-bg">

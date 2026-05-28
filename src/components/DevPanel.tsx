@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Wrench } from "lucide-react";
 import { useSettingsStore } from "../core/settings-store";
+import { useRuntimeSecrets } from "../core/runtime-secrets";
 import { listSkills } from "../core/skill-registry";
 import { budgetApi } from "../core/context";
 import { getDb } from "../core/db";
@@ -23,7 +24,7 @@ export function DevPanel() {
   const devMode = useSettingsStore((s) => s.devMode);
   const setDevMode = useSettingsStore((s) => s.setDevMode);
   const locale = useSettingsStore((s) => s.locale);
-  const apiKey = useSettingsStore((s) => s.apiKey);
+  const apiKey = useRuntimeSecrets((s) => s.apiKey);
   const reset = useSettingsStore((s) => s.reset);
   const [open, setOpen] = useState(true);
   const [diag, setDiag] = useState<Diagnostics>({

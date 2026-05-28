@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { findSkill } from "../core/skill-registry";
 import { useSettingsStore } from "../core/settings-store";
+import { useRuntimeSecrets } from "../core/runtime-secrets";
 import { blacklistApi, budgetApi } from "../core/context";
 import { getDb } from "../core/db";
 import type { SkillContext, SkillManifest } from "../core/types";
@@ -15,7 +16,7 @@ type AnyManifest = SkillManifest<unknown, unknown>;
 export function SkillRunner() {
   const { slug = "" } = useParams();
   const { t } = useTranslation();
-  const apiKey = useSettingsStore((s) => s.apiKey);
+  const apiKey = useRuntimeSecrets((s) => s.apiKey);
   const locale = useSettingsStore((s) => s.locale);
 
   const skill = findSkill(slug) as AnyManifest | undefined;

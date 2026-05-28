@@ -7,6 +7,7 @@ import { CanadaMap } from "../../components/CanadaMap";
 import { RegionPicker } from "../../components/RegionPicker";
 import { CitySearch } from "../../components/CitySearch";
 import { LanePicker } from "../../components/LanePicker";
+import { BlacklistSection } from "../../components/BlacklistSection";
 import {
   TRUCK_TYPES,
   FLEET_SIZES,
@@ -159,6 +160,8 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
       <Field label={locale === "fr" ? "Trajets préférés" : "Preferred lanes"}>
         <LanePicker selectedLanes={lanes} onToggleLane={toggleLane} />
       </Field>
+
+      <BlacklistSection />
 
       <div className="flex justify-end">
         <Button type="submit" size="lg">

@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Check, Plug, AlertTriangle } from "lucide-react";
+import { Check, Plug, AlertTriangle, Download, Upload, KeyRound } from "lucide-react";
 import { useSettingsStore } from "../core/settings-store";
+import { useRuntimeSecrets } from "../core/runtime-secrets";
+import { useLockStore } from "../core/lock-store";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -13,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { BlacklistManager } from "../components/BlacklistManager";
 import { setMonthlyLimit } from "../core/budget";
 import { listSkills } from "../core/skill-registry";
 import { testApiKey, type TestKeyResult } from "../core/claude-client";
@@ -21,20 +22,29 @@ import { testApiKey, type TestKeyResult } from "../core/claude-client";
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const apiKey = useSettingsStore((s) => s.apiKey);
-  const setApiKey = useSettingsStore((s) => s.setApiKey);
+  const apiKey = useRuntimeSecrets((s) => s.apiKey);
+  const setApiKeyFromPlain = useRuntimeSecrets((s) => s.setApiKeyFromPlain);
+  const setApiKeyEncrypted = useSettingsStore((s) => s.setApiKeyEncrypted);
   const locale = useSettingsStore((s) => s.locale);
   const setLocale = useSettingsStore((s) => s.setLocale);
   const monthlyBudgetUsd = useSettingsStore((s) => s.monthlyBudgetUsd);
   const setMonthlyBudgetUsd = useSettingsStore((s) => s.setMonthlyBudgetUsd);
   const devMode = useSettingsStore((s) => s.devMode);
   const setDevMode = useSettingsStore((s) => s.setDevMode);
+  const exportSnapshot = useSettingsStore((s) => s.exportSnapshot);
+  const importSnapshot = useSettingsStore((s) => s.importSnapshot);
+  const changePasscode = useLockStore((s) => s.changePasscode);
 
   const [draftKey, setDraftKey] = useState(apiKey);
   const [draftBudget, setDraftBudget] = useState(monthlyBudgetUsd);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestKeyResult | null>(null);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [oldPass, setOldPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [passMsg, setPassMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setDraftKey(apiKey), [apiKey]);
   useEffect(() => setDraftBudget(monthlyBudgetUsd), [monthlyBudgetUsd]);
@@ -43,7 +53,16 @@ export function SettingsPage() {
     e?.preventDefault();
     const trimmed = draftKey.trim();
     const wasEmpty = !apiKey;
-    setApiKey(trimmed);
+    if (trimmed && trimmed !== apiKey) {
+      try {
+        const ct = await setApiKeyFromPlain(trimmed);
+        setApiKeyEncrypted(ct);
+      } catch (err) {
+        setSavedAt(null);
+        // Likely locked — should not happen since lock screen gates this page.
+        console.error(err);
+      }
+    }
     setMonthlyBudgetUsd(draftBudget);
     try {
       await setMonthlyLimit(draftBudget);
@@ -52,8 +71,6 @@ export function SettingsPage() {
     }
     setSavedAt(Date.now());
 
-    // If this is first-run (key was empty, now isn't), auto-navigate to the
-    // first registered skill so the user lands on something useful.
     if (wasEmpty && trimmed) {
       const skills = listSkills();
       if (skills.length > 0) {
@@ -82,14 +99,51 @@ export function SettingsPage() {
     }
   }
 
+  function doExport() {
+    const json = exportSnapshot();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transport-paca-settings-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function onImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        importSnapshot(String(reader.result));
+        setImportMsg("Imported. Refresh to apply.");
+      } catch (err) {
+        setImportMsg(`Import failed: ${(err as Error).message}`);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // allow re-selecting the same file
+  }
+
+  async function doChangePasscode(e: React.FormEvent) {
+    e.preventDefault();
+    setPassMsg(null);
+    const r = await changePasscode(oldPass, newPass);
+    if (r.ok) {
+      setPassMsg("Passcode updated.");
+      setOldPass("");
+      setNewPass("");
+    } else {
+      setPassMsg(r.reason ?? "Change failed.");
+    }
+  }
+
   const keyShapeWarn =
     draftKey.trim().length > 0 && !draftKey.trim().startsWith("sk-ant-");
 
   return (
-    <form
-      onSubmit={save}
-      className="mx-auto flex max-w-3xl flex-col gap-6 p-8"
-    >
+    <form onSubmit={save} className="mx-auto flex max-w-3xl flex-col gap-6 p-8">
       <h1 className="text-xl font-semibold tracking-tight">{t("settings.title")}</h1>
 
       <Card>
@@ -97,8 +151,8 @@ export function SettingsPage() {
           <CardTitle>{t("settings.api_key")}</CardTitle>
           <CardDescription>
             {locale === "fr"
-              ? "Clé API Anthropic. Stockée localement, jamais envoyée ailleurs que sur api.anthropic.com. Appuyez sur Entrée ou cliquez sur Enregistrer."
-              : "Anthropic API key. Stored locally; never sent anywhere except api.anthropic.com. Press Enter or click Save to confirm."}
+              ? "Clé API Anthropic. Chiffrée localement avec votre passcode (AES-GCM 256). Jamais envoyée ailleurs que sur api.anthropic.com."
+              : "Anthropic API key. Encrypted locally with your passcode (AES-GCM 256). Never sent anywhere except api.anthropic.com."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -112,7 +166,6 @@ export function SettingsPage() {
               placeholder={t("settings.api_key_placeholder")}
               autoComplete="off"
               spellCheck={false}
-              // Submit triggers <form onSubmit> via Enter automatically.
             />
             <Button type="submit" disabled={!draftKey.trim() || draftKey.trim() === apiKey}>
               <Check className="h-4 w-4" />
@@ -158,11 +211,7 @@ export function SettingsPage() {
                   : "Test API key"}
             </Button>
             {testResult && (
-              <span
-                className={
-                  "text-xs " + (testResult.ok ? "text-success" : "text-danger")
-                }
-              >
+              <span className={"text-xs " + (testResult.ok ? "text-success" : "text-danger")}>
                 {testResult.ok
                   ? `✓ ${locale === "fr" ? "Clé valide" : "Key works"} — ${testResult.model}`
                   : `✗ ${testResult.status ?? ""} ${testResult.error}`}
@@ -172,12 +221,6 @@ export function SettingsPage() {
           {testResult && !testResult.ok && testResult.hint && (
             <div className="rounded border border-border-subtle bg-surface-2 p-2 text-xs text-text-muted">
               {testResult.hint}
-            </div>
-          )}
-          {testResult && !testResult.ok && (
-            <div className="text-[10px] font-mono text-text-dim">
-              prefix={testResult.keyPrefix} length={testResult.keyLength}{" "}
-              startsRight={String(testResult.startsRight)}
             </div>
           )}
         </CardContent>
@@ -231,10 +274,86 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t("settings.blacklist")}</CardTitle>
+          <CardTitle>
+            <KeyRound className="mr-2 inline h-4 w-4" />
+            {locale === "fr" ? "Passcode" : "Passcode"}
+          </CardTitle>
+          <CardDescription>
+            {locale === "fr"
+              ? "Changer le passcode utilisé pour déchiffrer cette installation."
+              : "Change the passcode that unlocks this install."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <BlacklistManager />
+          <div className="flex flex-col gap-2 sm:flex-row" onClick={(e) => e.stopPropagation()}>
+            <Input
+              type="password"
+              value={oldPass}
+              onChange={(e) => setOldPass(e.target.value)}
+              placeholder={locale === "fr" ? "Passcode actuel" : "Current passcode"}
+              autoComplete="current-password"
+            />
+            <Input
+              type="password"
+              value={newPass}
+              onChange={(e) => setNewPass(e.target.value)}
+              placeholder={locale === "fr" ? "Nouveau passcode" : "New passcode"}
+              autoComplete="new-password"
+            />
+            <Button type="button" onClick={doChangePasscode}>
+              {locale === "fr" ? "Mettre à jour" : "Update"}
+            </Button>
+          </div>
+          {passMsg && (
+            <div
+              className={
+                "mt-2 text-xs " + (passMsg === "Passcode updated." ? "text-success" : "text-danger")
+              }
+            >
+              {passMsg}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{locale === "fr" ? "Sauvegarde / partage" : "Backup / share"}</CardTitle>
+          <CardDescription>
+            {locale === "fr"
+              ? "Exporter ou importer l'état complet (clé chiffrée, épingles, historique). La synchronisation en temps réel nécessite un backend — non encore implémenté."
+              : "Export or import the full state (encrypted key, pins, history). Real-time sync needs a backend — not yet wired."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 sm:flex-row">
+          <Button type="button" variant="outline" onClick={doExport}>
+            <Download className="h-4 w-4" />
+            {locale === "fr" ? "Exporter JSON" : "Export JSON"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="h-4 w-4" />
+            {locale === "fr" ? "Importer JSON" : "Import JSON"}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={onImportFile}
+          />
+          {importMsg && (
+            <span
+              className={
+                "text-xs " + (importMsg.startsWith("Import failed") ? "text-danger" : "text-success")
+              }
+            >
+              {importMsg}
+            </span>
+          )}
         </CardContent>
       </Card>
 
@@ -264,8 +383,7 @@ export function SettingsPage() {
         <Button type="submit">{t("settings.save")}</Button>
         {savedAt && (
           <span className="text-xs text-success">
-            ✓{" "}
-            {locale === "fr" ? "Enregistré à" : "Saved at"}{" "}
+            ✓ {locale === "fr" ? "Enregistré à" : "Saved at"}{" "}
             {new Date(savedAt).toLocaleTimeString(locale === "fr" ? "fr-CA" : "en-CA")}
           </span>
         )}

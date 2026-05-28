@@ -142,6 +142,40 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Description:** Search history now writes to **both** SQLite (`search_history` table, durable across reinstalls) and a Zustand `historyMirror` slice (last 50 entries, in localStorage). The `/history` page reads from whichever has more rows. This kills the "history wiped after restart" complaint when running outside a packaged Tauri shell where SQLite isn't reachable.
 - **Files touched:** `src/skills/leads/handler.ts`, `src/core/settings-store.ts`, `src/pages/History.tsx`
 
+### passcode-lock
+
+- **Type:** infra
+- **Added:** 2026-05-27
+- **Status:** shipped
+- **Description:** Mandatory passcode gate at app start. On first launch the user picks a passcode (a brand-tied default `Camions-Paca-2026` is suggested but not required). The passcode is run through PBKDF2 (200k SHA-256 iterations) with a random 128-bit salt; the resulting AES-GCM 256 key is held in memory only and used to encrypt the Anthropic API key at rest. localStorage holds `{ salt, verifier }` — never the passcode itself. Wrong-passcode attempts rate-limit at 5 → 60-second lockout. Forget the passcode and the encrypted data is unrecoverable (no backdoor).
+- **Files touched:** `src/core/crypto.ts`, `src/core/lock-store.ts`, `src/core/runtime-secrets.ts`, `src/components/LockScreen.tsx`, `src/components/LockButton.tsx`, `src/App.tsx`, `src/router.tsx`, `src/core/settings-store.ts` (apiKey is now `apiKeyEncrypted: Ciphertext | null`)
+- **Notes:** Threat model is at-rest data theft (someone gets your localStorage). Doesn't protect against an attacker with your running session. Lock button in the header re-locks; refresh also clears the in-memory key. Change passcode via Settings → Passcode card.
+
+### settings-backup-export
+
+- **Type:** ui
+- **Added:** 2026-05-27
+- **Status:** shipped
+- **Description:** Manual cross-device sync stopgap until a backend lands. Export downloads the full persisted state (encrypted apiKey ciphertext + pins + history + budget + language + theme) as a JSON file. Import replaces the local state from a JSON file. Decrypting the exported apiKey on another install requires the same passcode (the salt + verifier travel with the JSON so the destination can re-derive the key).
+- **Files touched:** `src/pages/Settings.tsx`, `src/core/settings-store.ts`
+- **Notes:** Real-time sync (pin/history actions auto-push to a shared store) needs a backend — Cloudflare Worker + KV is the simplest free option, ~1hr to wire. Not yet started.
+
+### blacklist-relocation
+
+- **Type:** ui
+- **Added:** 2026-05-27
+- **Status:** shipped
+- **Description:** Blacklist manager moved out of `/settings` and into the leads ParamView as a collapsible section above the Run Search button. Settings is now purely cross-cutting concerns (key, language, budget, passcode, backup, dev mode). Per-automation state lives next to the automation that owns it.
+- **Files touched:** `src/components/BlacklistSection.tsx`, `src/skills/leads/ParamView.tsx`, `src/pages/Settings.tsx` (Blacklist card removed)
+
+### db-fail-fast
+
+- **Type:** infra
+- **Added:** 2026-05-27
+- **Status:** shipped
+- **Description:** `getDb()` now rejects immediately when not running inside the Tauri webview (no `__TAURI_INTERNALS__`). Previously it would call `tauri-plugin-sql` over a non-existent IPC channel and hang every consumer forever. Critical for `pnpm dev:vite` browser previews, e2e tests, and any future GitHub Pages build.
+- **Files touched:** `src/core/db.ts`
+
 ### palette-v2
 
 - **Type:** ui

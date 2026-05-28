@@ -1,14 +1,16 @@
 import type { ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "./App";
-import { useSettingsStore } from "./core/settings-store";
+import { useRuntimeSecrets } from "./core/runtime-secrets";
 import { SettingsPage } from "./pages/Settings";
 import { HistoryPage } from "./pages/History";
 import { SkillRunner } from "./pages/SkillRunner";
 
 // First-run gate: if no API key is set, redirect to /settings.
+// The lock screen has already gated entry to the whole app at this point,
+// so the runtime apiKey reflects whatever was decrypted at unlock time.
 function RequireApiKey({ children }: { children: ReactNode }) {
-  const apiKey = useSettingsStore((s) => s.apiKey);
+  const apiKey = useRuntimeSecrets((s) => s.apiKey);
   if (!apiKey) return <Navigate to="/settings" replace />;
   return <>{children}</>;
 }
