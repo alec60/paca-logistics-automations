@@ -1,12 +1,14 @@
 import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "../../lib/utils";
 
+// Cards now use the light "menu" palette to match the reference image.
+// Page bg stays dark slate; cards float on top as light off-white surfaces.
 export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border border-border-subtle bg-surface-1 shadow-soft",
+        "rounded-lg bg-menu-bg text-input-text shadow-soft",
         className,
       )}
       {...props}
@@ -24,14 +26,22 @@ CardHeader.displayName = "CardHeader";
 
 export const CardTitle = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("text-sm font-semibold tracking-tight", className)} {...props} />
+    <div
+      ref={ref}
+      className={cn("text-sm font-semibold tracking-tight text-input-text", className)}
+      {...props}
+    />
   ),
 );
 CardTitle.displayName = "CardTitle";
 
 export const CardDescription = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("text-xs text-text-muted", className)} {...props} />
+    <div
+      ref={ref}
+      className={cn("text-xs text-input-placeholder", className)}
+      {...props}
+    />
   ),
 );
 CardDescription.displayName = "CardDescription";

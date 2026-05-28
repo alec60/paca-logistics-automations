@@ -9,7 +9,8 @@ export const Label = forwardRef<
   <LabelPrimitive.Root
     ref={ref}
     className={cn(
-      "text-xs font-medium text-text-muted peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+      // Cards are light now — default Label text matches that surface.
+      "text-xs font-medium text-input-placeholder peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
       className,
     )}
     {...props}

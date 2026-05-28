@@ -186,7 +186,7 @@ export function SettingsPage() {
             </Button>
           </div>
           {apiKey && (
-            <span className="text-xs text-text-dim">
+            <span className="text-xs text-input-placeholder">
               {locale === "fr" ? "Clé actuelle : " : "Current key: "}
               <span className="font-mono">
                 {apiKey.slice(0, 8)}…{apiKey.slice(-6)} ({apiKey.length}{" "}

@@ -104,8 +104,8 @@ export function LockScreen() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-bg p-6">
-      <div className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-1 p-8 shadow-soft">
-        <div className="flex flex-col items-center gap-3 text-center">
+      <div className="w-full max-w-md rounded-lg bg-menu-bg p-8 shadow-soft">
+        <div className="flex flex-col items-center gap-3 text-center text-input-text">
           <div className="flex h-14 w-14 items-center justify-center rounded-pill bg-gradient-accent shadow-glow">
             {mode === "setup" ? (
               <KeyRound className="h-7 w-7 text-accent-text" />
@@ -116,7 +116,7 @@ export function LockScreen() {
           <h1 className="text-xl font-semibold tracking-tight">
             {mode === "setup" ? "Set a passcode" : "Unlock Transport Paca"}
           </h1>
-          <p className="max-w-sm text-xs text-text-muted">
+          <p className="max-w-sm text-xs text-input-placeholder">
             {mode === "setup"
               ? "Choose a passcode to protect this install. Your API key and settings will be encrypted at rest with a key derived from this passcode. If you forget it, the data is unrecoverable."
               : "Enter your passcode to decrypt local settings and continue."}
@@ -125,7 +125,7 @@ export function LockScreen() {
 
         <form className="mt-6 flex flex-col gap-3" onSubmit={onSubmit}>
           {mode === "setup" && (
-            <div className="flex flex-col gap-2 rounded-md border border-warning/40 bg-warning/5 p-3 text-xs">
+            <div className="flex flex-col gap-2 rounded-md border border-warning/60 bg-warning/15 p-3 text-xs text-input-text">
               <div className="flex items-start gap-2 text-warning">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>
@@ -142,14 +142,14 @@ export function LockScreen() {
                     type="button"
                     onClick={copySuggested}
                     title="Copy"
-                    className="rounded-pill p-1 text-text-muted hover:bg-surface-3 hover:text-text"
+                    className="rounded-pill p-1 text-input-placeholder hover:bg-menu-bg-strong hover:text-input-text"
                   >
                     <Copy className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={useSuggested}
-                    className="rounded-pill border border-border-subtle px-2 py-0.5 text-[10px] hover:bg-surface-3"
+                    className="rounded-pill bg-input-bg px-2 py-0.5 text-[10px] text-input-text hover:bg-input-bg-hover"
                   >
                     Use suggested
                   </button>
@@ -163,7 +163,7 @@ export function LockScreen() {
                   </button>
                 </div>
               </div>
-              <div className="text-text-dim">
+              <div className="text-input-placeholder">
                 Or pick your own — anything ≥ 6 characters. Save it somewhere safe; loss = data loss.
               </div>
             </div>

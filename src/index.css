@@ -16,14 +16,16 @@
   --color-text-muted:       #9098ac;
   --color-text-dim:         #6a728a;
 
-  /* "Usable boxes" — inputs, dropdown rows, unselected map polygons and
-     lane cells. Pulled from the reference dashboard mockup: light off-
-     white grey pills floating on the dark slate page. Text on top is the
-     dark slate text so contrast meets WCAG AA. */
-  --color-input-bg:         #e3e6ee;
-  --color-input-bg-hover:   #d6dae5;
+  /* "Usable menus" — the cards / surfaces the user interacts with.
+     Per the reference (login card): the card itself is light off-white;
+     inputs inside are a slightly darker shade so you read the layering
+     without needing borders. Text on these light surfaces is dark slate. */
+  --color-menu-bg:          #eef0f4;
+  --color-menu-bg-strong:   #e3e6ee;
+  --color-input-bg:         #dce0e8;
+  --color-input-bg-hover:   #cfd4de;
   --color-input-text:       #1c2030;
-  --color-input-placeholder:#5b6379;
+  --color-input-placeholder:#6a728a;
 
   /* Coral-to-orange accent — pulled from the reference. */
   --color-accent:           #ff7559;
