@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { Ciphertext } from "./crypto";
+import { logAudit } from "./audit-log";
 
 export type Theme = "system" | "dark" | "light";
 export type Locale = "en" | "fr";
@@ -70,23 +71,30 @@ export const useSettingsStore = create<SettingsState>()(
 
       togglePinnedCity: (city) => {
         const pinned = get().pinnedCities;
+        const wasPinned = pinned.includes(city);
         set({
-          pinnedCities: pinned.includes(city)
+          pinnedCities: wasPinned
             ? pinned.filter((c) => c !== city)
             : [...pinned, city],
         });
+        logAudit("pin", `${wasPinned ? "Unpinned" : "Pinned"} city: ${city}`);
       },
       togglePinnedLane: (lane) => {
         const pinned = get().pinnedLanes;
+        const wasPinned = pinned.includes(lane);
         set({
-          pinnedLanes: pinned.includes(lane)
+          pinnedLanes: wasPinned
             ? pinned.filter((l) => l !== lane)
             : [...pinned, lane],
         });
+        logAudit("pin", `${wasPinned ? "Unpinned" : "Pinned"} lane: ${lane}`);
       },
       pushHistoryMirror: (entry) => {
         const next = [entry, ...get().historyMirror].slice(0, 50);
         set({ historyMirror: next });
+        logAudit("history", `Search recorded (${entry.skill_slug})`, {
+          cost_usd: entry.cost_usd,
+        });
       },
       clearHistoryMirror: () => set({ historyMirror: [] }),
 

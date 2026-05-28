@@ -1,5 +1,6 @@
 import type { BlacklistAPI, BlacklistEntry } from "./types";
 import { getDb } from "./db";
+import { logAudit } from "./audit-log";
 
 export function normalizeCompany(name: string): string {
   return name
@@ -40,11 +41,13 @@ export function createBlacklistApi(): BlacklistAPI {
         "INSERT OR IGNORE INTO blacklisted_carriers (company, company_normalized, reason) VALUES ($1, $2, $3)",
         [company.trim(), norm, reason ?? null],
       );
+      logAudit("blacklist", `Added: ${company.trim()}`, { reason });
     },
 
     async remove(id: number): Promise<void> {
       const db = await getDb();
       await db.execute("DELETE FROM blacklisted_carriers WHERE id = $1", [id]);
+      logAudit("blacklist", `Removed entry #${id}`);
     },
 
     async isBlacklisted(company: string): Promise<boolean> {

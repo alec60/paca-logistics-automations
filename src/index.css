@@ -16,6 +16,15 @@
   --color-text-muted:       #9098ac;
   --color-text-dim:         #6a728a;
 
+  /* "Usable boxes" — inputs, dropdown rows, unselected map polygons and
+     lane cells. Pulled from the reference dashboard mockup: light off-
+     white grey pills floating on the dark slate page. Text on top is the
+     dark slate text so contrast meets WCAG AA. */
+  --color-input-bg:         #e3e6ee;
+  --color-input-bg-hover:   #d6dae5;
+  --color-input-text:       #1c2030;
+  --color-input-placeholder:#5b6379;
+
   /* Coral-to-orange accent — pulled from the reference. */
   --color-accent:           #ff7559;
   --color-accent-hover:     #ff6044;

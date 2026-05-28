@@ -81,15 +81,15 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
                   provinces: selectedProvinces.join(", "),
                 })
           }
-          className="h-10 w-full rounded-pill border border-border-subtle bg-surface-2 pl-9 pr-3 text-sm text-text placeholder:text-text-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+          className="h-10 w-full rounded-pill border border-transparent bg-input-bg pl-9 pr-3 text-sm text-input-text placeholder:text-input-placeholder focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           aria-label="City search"
         />
       </div>
 
-      {/* Dropdown — always visible when there are matches */}
+      {/* Dropdown — light surface to match the reference dashboard */}
       {filtered.length > 0 && (
-        <div className="max-h-56 overflow-y-auto rounded-md border border-border-subtle bg-surface-1">
-          <ul role="listbox" aria-label="City results">
+        <div className="max-h-56 overflow-y-auto rounded-lg bg-input-bg">
+          <ul role="listbox" aria-label="City results" className="divide-y divide-black/5">
             {filtered.map((city) => {
               const isSelected = selectedCities.includes(city);
               const isPinned = pinned.includes(city);
@@ -99,7 +99,7 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
                   role="option"
                   aria-selected={isSelected}
                   className={cn(
-                    "flex items-center justify-between px-3 py-1.5 text-sm",
+                    "flex items-center justify-between px-3 py-1.5 text-sm text-input-text",
                     isSelected && "bg-accent-bg text-accent",
                   )}
                 >
@@ -109,7 +109,7 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
                     className="flex flex-1 items-center gap-2 text-left"
                   >
                     <span>{city}</span>
-                    <span className="text-[10px] text-text-dim">
+                    <span className="text-[10px] text-input-placeholder">
                       {CITY_TO_PROVINCE[city]}
                     </span>
                   </button>
@@ -120,7 +120,7 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
                     title={isPinned ? "Unpin" : "Pin"}
                     className={cn(
                       "ml-2 rounded-pill p-1",
-                      isPinned ? "text-accent" : "text-text-dim hover:text-text",
+                      isPinned ? "text-accent" : "text-input-placeholder hover:text-input-text",
                     )}
                   >
                     {isPinned ? (

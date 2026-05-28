@@ -156,7 +156,7 @@ export function CanadaMap({
                   "cursor-pointer transition-all duration-120",
                   isSelected
                     ? "fill-[color:var(--color-accent-bg)] stroke-[color:var(--color-accent)]"
-                    : "fill-[color:var(--color-surface-3)] stroke-[color:var(--color-border)] hover:fill-[color:var(--color-border)]",
+                    : "fill-[color:var(--color-input-bg)] stroke-transparent hover:fill-[color:var(--color-input-bg-hover)]",
                 )}
                 strokeWidth={1.5}
                 strokeLinejoin="round"
@@ -168,7 +168,7 @@ export function CanadaMap({
                   y={s.cy}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="pointer-events-none fill-[color:var(--color-text-muted)] font-mono text-[16px] font-semibold tracking-widest"
+                  className="pointer-events-none fill-[color:var(--color-input-text)] font-mono text-[16px] font-semibold tracking-widest"
                 >
                   {s.code}
                 </text>

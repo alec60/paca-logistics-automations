@@ -198,6 +198,38 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Deferred**: encrypting SQLite `search_history` at rest (audit P2.10) — significant refactor, separate session.
 - **Files touched:** `.gitignore`, `server/routes/auth.ts` (new), `server/routes/claude.ts`, `server/index.ts`, `src/core/claude-client.ts`, `src/core/runtime-secrets.ts`, `src/core/settings-store.ts`, `src/components/LockScreen.tsx`, `src/pages/Settings.tsx`, `src/skills/leads/{schemas.ts,handler.ts,manifest.ts,ResultView.tsx}`, `src-tauri/{tauri.conf.json,Cargo.toml,capabilities/default.json,src/lib.rs}`, `.github/workflows/release.yml`
 
+### usable-box-tokens
+
+- **Type:** ui
+- **Added:** 2026-05-28
+- **Status:** shipped
+- **Description:** Added `--color-input-bg` / `--color-input-bg-hover` / `--color-input-text` / `--color-input-placeholder` tokens for the "usable box" surfaces from the reference dashboard (off-white pills on dark slate). Applied to: shadcn `<Input>`, `<CitySearch>` field + dropdown rows, `<PillGroup>` unselected pills, `<LanePicker>` cells, and unselected provinces in `<CanadaMap>`. The dark `bg-surface-*` tokens still drive cards, the page bg, and the sidebar.
+- **Files touched:** `src/index.css`, `src/components/ui/input.tsx`, `src/components/CitySearch.tsx`, `src/components/PillGroup.tsx`, `src/components/LanePicker.tsx`, `src/components/CanadaMap.tsx`
+
+### brand-logo
+
+- **Type:** ui
+- **Added:** 2026-05-28
+- **Status:** shipped
+- **Description:** Custom SVG wordmark replacing the plain "Transport Paca" header text. Coral→orange gradient plate with a black "TP" mark (T crossbar = the road, P bowl = the cargo). Wordmark below: "Transport Paca" with "Paca" in the accent gradient, plus a "Carrier intel" tagline in mono. Same SVG is used as the favicon and the PWA icon.
+- **Files touched:** `src/components/BrandLogo.tsx`, `public/logo.svg`, `index.html`, `src/App.tsx`
+
+### dev-audit-log
+
+- **Type:** ui
+- **Added:** 2026-05-28
+- **Status:** shipped
+- **Description:** In-memory session log (last 200 events) of pin / blacklist / history / lock / settings / search actions. Surfaced in the DevPanel under "Session log" when dev mode is on. Each event has a colored category tag + timestamp + human message. Doesn't persist across refreshes by design — this is for "what just happened" debugging, not forensics.
+- **Files touched:** `src/core/audit-log.ts` (new), `src/core/settings-store.ts` (pin/history hooks), `src/core/blacklist.ts` (add/remove hooks), `src/components/DevPanel.tsx`
+
+### deploy-tutorial
+
+- **Type:** docs
+- **Added:** 2026-05-28
+- **Status:** shipped
+- **Description:** `DEPLOY.md` — step-by-step guide for publishing to GitHub Pages as a PWA installable on Mac via Chrome "Install app". Covers `vite-plugin-pwa` setup, GitHub Actions workflow, custom-domain option, and an honest comparison of cross-device sync paths (manual JSON, Cloudflare Worker + KV, Telegram bot for WhatsApp-style notifications — WhatsApp itself is documented as not feasible for the free tier).
+- **Files touched:** `DEPLOY.md`
+
 ### palette-v2
 
 - **Type:** ui

@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Wrench } from "lucide-react";
 import { useSettingsStore } from "../core/settings-store";
 import { useRuntimeSecrets } from "../core/runtime-secrets";
 import { listSkills } from "../core/skill-registry";
+import { useAuditLog, type AuditCategory } from "../core/audit-log";
 import { budgetApi } from "../core/context";
 import { getDb } from "../core/db";
 import { cn } from "../lib/utils";
@@ -37,6 +38,8 @@ export function DevPanel() {
   const skills = useMemo(() => listSkills(), []);
   const tauriDetected = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
   const mode = import.meta.env.MODE;
+  const auditEvents = useAuditLog((s) => s.events);
+  const clearAudit = useAuditLog((s) => s.clear);
 
   useEffect(() => {
     if (!devMode) return;
@@ -125,6 +128,42 @@ export function DevPanel() {
             />
 
             <div className="mt-2 border-t border-border-subtle pt-2">
+              <div className="mb-1 flex items-center justify-between text-text-dim">
+                <span>
+                  {locale === "fr" ? "Journal de session" : "Session log"} ({auditEvents.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={clearAudit}
+                  className="rounded px-1.5 py-0.5 text-text-dim hover:bg-surface-2 hover:text-text"
+                >
+                  clear
+                </button>
+              </div>
+              {auditEvents.length === 0 ? (
+                <div className="text-text-dim">
+                  {locale === "fr"
+                    ? "Aucun évènement depuis le déverrouillage."
+                    : "No events since unlock."}
+                </div>
+              ) : (
+                <ul className="flex max-h-32 flex-col gap-0.5 overflow-y-auto">
+                  {auditEvents.slice(0, 25).map((ev) => (
+                    <li key={ev.id} className="text-text">
+                      <span className={"mr-1 " + auditTone(ev.category)}>
+                        [{ev.category}]
+                      </span>
+                      <span className="text-text-dim">
+                        {new Date(ev.ts).toLocaleTimeString()}
+                      </span>{" "}
+                      <span>{ev.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="mt-2 border-t border-border-subtle pt-2">
               <div className="mb-1 text-text-dim">
                 {locale === "fr" ? "Automatisations enregistrées" : "Registered automations"} ({skills.length})
               </div>
@@ -177,6 +216,23 @@ export function DevPanel() {
       </div>
     </div>
   );
+}
+
+function auditTone(category: AuditCategory): string {
+  switch (category) {
+    case "blacklist":
+      return "text-danger";
+    case "pin":
+      return "text-accent";
+    case "history":
+    case "search":
+      return "text-info";
+    case "lock":
+      return "text-warning";
+    case "settings":
+    default:
+      return "text-text-muted";
+  }
 }
 
 function Row({

@@ -5,6 +5,7 @@ import { CommandPalette } from "./components/CommandPalette";
 import { DevPanel } from "./components/DevPanel";
 import { LockScreen } from "./components/LockScreen";
 import { LockButton } from "./components/LockButton";
+import { BrandLogo } from "./components/BrandLogo";
 import { useLockStore } from "./core/lock-store";
 
 export default function App() {
@@ -20,7 +21,7 @@ export default function App() {
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border-subtle bg-surface-1 px-6 py-3">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-sm text-text-muted">Transport Paca</span>
+            <BrandLogo />
             <kbd className="rounded border border-border-subtle bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-text-dim">
               Ctrl + K
             </kbd>

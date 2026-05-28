@@ -45,10 +45,10 @@ export function PillGroup<V extends string>({
           aria-pressed={selected.has(o.value)}
           onClick={() => toggle(o.value)}
           className={cn(
-            "rounded-md border px-3 py-1 text-xs",
+            "rounded-pill px-4 py-1.5 text-xs font-medium",
             selected.has(o.value)
-              ? "border-accent bg-accent-bg text-accent"
-              : "border-border-subtle bg-surface-1 text-text-muted hover:border-border hover:text-text",
+              ? "bg-gradient-accent text-accent-text shadow-glow"
+              : "bg-input-bg text-input-text hover:bg-input-bg-hover",
           )}
         >
           {o.label}

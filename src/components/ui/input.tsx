@@ -8,7 +8,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     <input
       type={type}
       className={cn(
-        "flex h-10 w-full rounded-pill border border-border-subtle bg-surface-2 px-4 py-1 text-sm text-text placeholder:text-text-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-50",
+        // Light "usable box" on the dark slate bg — matches the reference.
+        "flex h-10 w-full rounded-pill border border-transparent bg-input-bg px-4 py-1 text-sm text-input-text placeholder:text-input-placeholder",
+        "hover:bg-input-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring",
+        "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       ref={ref}

@@ -47,7 +47,7 @@ export function LanePicker({ selectedLanes, onToggleLane }: Props) {
         <div className="text-xs font-medium uppercase tracking-wider text-text-dim">
           {title}
         </div>
-        <div className="grid max-h-56 grid-cols-2 gap-1 overflow-y-auto rounded-md border border-border-subtle bg-surface-1 p-2 sm:grid-cols-3">
+        <div className="grid max-h-56 grid-cols-2 gap-1 overflow-y-auto rounded-lg bg-surface-1 p-2 sm:grid-cols-3">
           {PROVINCES.map((p) => {
             const isOn = selected.includes(p.code);
             return (
@@ -63,10 +63,10 @@ export function LanePicker({ selectedLanes, onToggleLane }: Props) {
                 }
                 aria-pressed={isOn}
                 className={cn(
-                  "rounded-sm px-2 py-1 text-left text-xs font-medium",
+                  "rounded-md px-2 py-1.5 text-center text-xs font-semibold tracking-wider",
                   isOn
-                    ? "bg-gradient-accent text-accent-text"
-                    : "bg-surface-2 text-text-muted hover:bg-surface-3 hover:text-text",
+                    ? "bg-gradient-accent text-accent-text shadow-glow"
+                    : "bg-input-bg text-input-text hover:bg-input-bg-hover",
                 )}
               >
                 {p.code}
