@@ -1,16 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  /* Deep dark slate — locked dark mode. The reference image is dark and the
-     team works inside Tauri's webview which inconsistently reports OS theme
-     preference. Light mode can come back later as an explicit Settings toggle. */
-  --color-bg:               #161a26;
-  --color-surface-1:        #1e2230;
-  --color-surface-2:        #262b3b;
-  --color-surface-3:        #323849;
-  --color-border-subtle:    #262b3b;
-  --color-border:           #3a4054;
-  --color-border-strong:    #4a5167;
+  /* Mid-slate blue-grey — matches the reference dashboard background.
+     Previous values were near-black; per the user, the reference is the
+     lighter blue-grey shown in the swatch. Locked dark mode until a
+     Settings toggle ships. */
+  --color-bg:               #384358;
+  --color-surface-1:        #424d65;
+  --color-surface-2:        #4d5872;
+  --color-surface-3:        #5b6680;
+  --color-border-subtle:    #4d5872;
+  --color-border:           #5b6680;
+  --color-border-strong:    #6c7896;
 
   --color-text:             #eef0f6;
   --color-text-muted:       #9098ac;
