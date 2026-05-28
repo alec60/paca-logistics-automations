@@ -15,11 +15,17 @@ function RequireApiKey({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-export const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <App />,
-    children: [
+// Strip trailing slash so router compares cleanly against route paths.
+// Vite populates BASE_URL from the `base` config: "/" for Tauri / dev, and
+// "/paca-logistics-automations/" for the GitHub Pages build.
+const ROUTER_BASE = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
+export const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <App />,
+      children: [
       {
         index: true,
         element: (
@@ -46,7 +52,9 @@ export const router = createBrowserRouter([
           </RequireApiKey>
         ),
       },
-      { path: "settings", element: <SettingsPage /> },
-    ],
-  },
-]);
+        { path: "settings", element: <SettingsPage /> },
+      ],
+    },
+  ],
+  { basename: ROUTER_BASE },
+);
