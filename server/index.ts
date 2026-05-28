@@ -1,22 +1,43 @@
 // Tauri sidecar — local Express proxy for Anthropic SDK calls.
-// The browser sends a skill request; the sidecar holds the apiKey transit-only
-// and forwards to Anthropic. Frontend handles validation, blacklist, budget
-// because it owns the SQLite DB (tauri-plugin-sql).
+// The browser uses /api/auth/register exactly once after unlock; from then on
+// the sidecar holds the API key in process memory and the renderer carries a
+// short-lived session token via X-Session-Token.
 import express from "express";
 import { claudeRouter } from "./routes/claude";
-import { settingsRouter } from "./routes/settings";
-import { blacklistRouter } from "./routes/blacklist";
-import { budgetRouter } from "./routes/budget";
+import { authRouter } from "./routes/auth";
+
+// Origin allowlist. The webview's origin under Tauri is `tauri://localhost`
+// and `http://tauri.localhost`; the Vite dev server runs at 1420 and 5173 as
+// fallbacks. Anything else is rejected pre-flight.
+const ALLOWED_ORIGINS = new Set([
+  "tauri://localhost",
+  "http://tauri.localhost",
+  "https://tauri.localhost",
+  "http://localhost:1420",
+  "http://127.0.0.1:1420",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]);
 
 export function createServer() {
   const app = express();
   app.use(express.json({ limit: "2mb" }));
 
-  // CORS — Tauri webview talks to 127.0.0.1; allow only the Tauri dev host.
+  // CORS — explicit allowlist instead of "*". A request without an Origin
+  // header (e.g. curl, server-to-server) reaches the route handler but won't
+  // get a permissive ACAO echoed back; combined with the X-Session-Token
+  // requirement on /api/claude/* that's enough.
   app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    const origin = req.header("origin");
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+    }
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type,X-Session-Token",
+    );
     if (req.method === "OPTIONS") {
       res.status(204).end();
       return;
@@ -28,16 +49,16 @@ export function createServer() {
     res.json({ ok: true, ts: Date.now() });
   });
 
+  app.use("/api/auth", authRouter);
   app.use("/api/claude", claudeRouter);
-  app.use("/api/settings", settingsRouter);
-  app.use("/api/blacklist", blacklistRouter);
-  app.use("/api/budget", budgetRouter);
 
-  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    // eslint-disable-next-line no-console
-    console.error("[sidecar]", err);
-    res.status(500).json({ error: err.message || "Internal error" });
-  });
+  app.use(
+    (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      // eslint-disable-next-line no-console
+      console.error("[sidecar]", err);
+      res.status(500).json({ error: err.message || "Internal error" });
+    },
+  );
 
   return app;
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Copy, Save, RefreshCw, Plus, Ban, ExternalLink, Send } from "lucide-react";
+import { Copy, Save, RefreshCw, Ban, ExternalLink } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { ResultTable, type Column } from "../../components/ResultTable";
 import { CostBadge } from "../../components/CostBadge";
@@ -31,7 +31,7 @@ function toCsv(rows: Carrier[]): string {
   return lines.join("\n");
 }
 
-export function ResultView({ result, onNewSearch, params }: Props) {
+export function ResultView({ result, onNewSearch }: Props) {
   const { t } = useTranslation();
   const [carriers, setCarriers] = useState(result.carriers);
   const [hiddenShown, setHiddenShown] = useState(false);
@@ -114,15 +114,8 @@ export function ResultView({ result, onNewSearch, params }: Props) {
           <Button size="icon" variant="ghost" onClick={() => blacklist(r)} aria-label={t("blacklist.add")}>
             <Ban className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            disabled
-            title="Coming soon"
-            aria-label="Send to CRM (coming soon)"
-          >
-            <Send className="h-3.5 w-3.5" />
-          </Button>
+          {/* CRM integration is a future skill — button removed until it ships
+              (audit P3.15 — non-functional UI in production looked broken). */}
         </div>
       ),
       className: "w-[1%] whitespace-nowrap",
@@ -148,17 +141,9 @@ export function ResultView({ result, onNewSearch, params }: Props) {
           <Button size="sm" variant="outline" onClick={onNewSearch}>
             <RefreshCw className="h-3.5 w-3.5" /> New
           </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              const next = { ...params, count: params.count };
-              // Phase 4 polish: append, don't replace. For now we re-emit onSubmit via parent state.
-              onNewSearch();
-              void next;
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" /> More
-          </Button>
+          {/* "More leads" (append to current result) belongs in a follow-up
+              once the runner supports param-merge. Hidden until then so the
+              button doesn't lie about its behavior. */}
         </div>
       </header>
 

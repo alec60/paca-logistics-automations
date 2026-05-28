@@ -30,6 +30,22 @@ const optStr = z
   .nullish()
   .transform((v) => (v == null || v === "" ? undefined : v));
 
+// Optional URL — null/missing/empty/malformed all become undefined so the
+// ResultView never builds an <a href> with javascript: or other unsafe schemes.
+// Audit P2.11.
+const optHttpUrl = z
+  .string()
+  .nullish()
+  .transform((v) => {
+    if (v == null || v === "") return undefined;
+    try {
+      const u = new URL(v);
+      return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+
 export const Carrier = z.object({
   company: z.string().min(1),
   province: z.string().min(1),
@@ -41,7 +57,7 @@ export const Carrier = z.object({
     .transform((v) => v ?? []),
   phone: optStr,
   email: optStr,
-  website: optStr,
+  website: optHttpUrl,
   lanes: optStr,
 });
 export type Carrier = z.infer<typeof Carrier>;

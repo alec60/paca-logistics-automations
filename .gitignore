@@ -29,8 +29,10 @@ imports/
 .swarm/
 .claude-flow/
 
-# Claude Code local settings
-.claude/settings.local.json
+# Claude Code workspace — agents, hooks, memory, commands.
+# Never commit any of this; it can contain runtime memory + execution hooks
+# that would run on anyone who opens the repo with Claude Code.
+.claude/
 
 # IDE
 .vscode/

@@ -22,12 +22,9 @@ const manifest: SkillManifest<LeadsParams, LeadsResult> = {
   resultSchema: LeadsResult,
   ParamView,
   ResultView,
-  // Adapter: SkillContext is passed by the runner; here we read the apiKey + locale
-  // off the ambient hook layer. The runner already injects these via callSidecar.
-  handler: async (params, ctx) => {
-    const apiKey = (ctx as unknown as { apiKey?: string }).apiKey ?? "";
-    return handle(params, { apiKey, locale: ctx.locale });
-  },
+  // Adapter: the sidecar session (registered after lock-screen unlock) holds
+  // the apiKey now — the handler doesn't need it in its inputs.
+  handler: async (params, ctx) => handle(params, { locale: ctx.locale }),
 };
 
 export default manifest;

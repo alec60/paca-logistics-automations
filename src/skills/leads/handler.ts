@@ -41,7 +41,7 @@ function extractJson(raw: string): unknown {
 
 export async function handle(
   params: LeadsParams,
-  opts: { apiKey: string; locale: "en" | "fr" },
+  opts: { locale: "en" | "fr" },
 ): Promise<LeadsResult> {
   // 1. Pre-call budget gate.
   const estimate = estimateLeadSearchCost({
@@ -54,13 +54,15 @@ export async function handle(
     throw new BudgetError(check.reason ?? "Budget exceeded");
   }
 
-  // 2. Call sidecar → Anthropic with web_search.
+  // 2. Call sidecar → Anthropic with web_search. The session token (already
+  // registered by the runtime-secrets layer) authenticates this call; the
+  // apiKey itself is not in the body.
   const request = buildMessagesRequest(params, opts.locale);
   let response: ProxyResponse;
   try {
     response = await callSidecar<ProxyResponse>("/api/claude/messages", {
       method: "POST",
-      body: { apiKey: opts.apiKey, request },
+      body: { request },
     });
   } catch (err) {
     // Map Anthropic 429s to a domain-specific error so the UI can render

@@ -41,7 +41,9 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Transport Paca ${{ github.ref_name }}'
-          releaseBody: 'See CHANGELOG.md'
-          releaseDraft: false
+          releaseBody: 'See CHANGELOG.md. Review the draft before publishing.'
+          # Releases land as drafts so a stray tag push doesn't expose an
+          # unfinished build. Publish manually after review.
+          releaseDraft: true
           prerelease: false
           includeUpdaterJson: true

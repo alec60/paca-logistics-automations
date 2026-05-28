@@ -43,7 +43,10 @@ export interface SettingsState {
 
   // Export/import of the persisted state — used for manual cross-device sync
   // until the team picks a backend (Cloudflare Worker / Supabase / etc.).
-  exportSnapshot: () => string;
+  // `minimal` (default true) drops the apiKeyEncrypted ciphertext and the
+  // historyMirror; only language + theme + budget + pinned items travel.
+  // Per audit P2.8: the full export is a real key/data leak risk if shared.
+  exportSnapshot: (opts?: { includeSecrets?: boolean; includeHistory?: boolean }) => string;
   importSnapshot: (json: string) => void;
 }
 
@@ -99,19 +102,23 @@ export const useSettingsStore = create<SettingsState>()(
           historyMirror: [],
         }),
 
-      exportSnapshot: () => {
+      exportSnapshot: (opts) => {
         const s = get();
+        const includeSecrets = opts?.includeSecrets ?? false;
+        const includeHistory = opts?.includeHistory ?? false;
         const data = {
           version: 1,
           exportedAt: new Date().toISOString(),
+          includesSecrets: includeSecrets,
+          includesHistory: includeHistory,
           state: {
-            apiKeyEncrypted: s.apiKeyEncrypted,
+            apiKeyEncrypted: includeSecrets ? s.apiKeyEncrypted : null,
             locale: s.locale,
             theme: s.theme,
             monthlyBudgetUsd: s.monthlyBudgetUsd,
             pinnedCities: s.pinnedCities,
             pinnedLanes: s.pinnedLanes,
-            historyMirror: s.historyMirror,
+            historyMirror: includeHistory ? s.historyMirror : [],
           },
         };
         return JSON.stringify(data, null, 2);

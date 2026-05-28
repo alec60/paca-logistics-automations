@@ -9,11 +9,11 @@ pub fn run() {
         kind: MigrationKind::Up,
     }];
 
+    // Plugin surface kept minimal — see capabilities/default.json. The shell,
+    // process, and fs plugins were dropped because the renderer no longer
+    // needs them and they widened the XSS blast radius (audit P1.5).
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_sql::Builder::default()

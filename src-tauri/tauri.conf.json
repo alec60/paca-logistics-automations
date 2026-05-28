@@ -10,16 +10,18 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "withGlobalTauri": true,
+    "withGlobalTauri": false,
     "windows": [
       {
         "title": "Transport PACA",
-        "width": 800,
-        "height": 600
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 600
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' tauri://localhost http://tauri.localhost; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://rsms.me; font-src 'self' https://rsms.me data:; img-src 'self' data: blob:; connect-src 'self' http://127.0.0.1:19191 http://localhost:19191 tauri://localhost ipc:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
     }
   },
   "bundle": {
@@ -36,10 +38,9 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com"
+        "https://github.com/alec60/paca-logistics-automations/releases/latest/download/latest.json"
       ],
       "pubkey": "RWRuZGFGY1IwSWRETzJ6a1FHaVRscTE3em01UisybzRKK05WTWVzVEgwUWRybFBiNk1vd05udQ=="
     }
   }
 }
-

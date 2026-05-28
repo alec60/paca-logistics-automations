@@ -176,6 +176,28 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Description:** `getDb()` now rejects immediately when not running inside the Tauri webview (no `__TAURI_INTERNALS__`). Previously it would call `tauri-plugin-sql` over a non-existent IPC channel and hang every consumer forever. Critical for `pnpm dev:vite` browser previews, e2e tests, and any future GitHub Pages build.
 - **Files touched:** `src/core/db.ts`
 
+### security-hardening-2026-05-28
+
+- **Type:** infra
+- **Added:** 2026-05-28
+- **Status:** shipped
+- **Description:** Round of fixes from a third-party audit. Highlights:
+  - **`.claude/` untracked from git** (238 files were committed — agent definitions, hooks, memory.db).
+  - **Sidecar session model**: the renderer no longer puts the apiKey in every request body. After unlock the key is handed to `POST /api/auth/register` once; the sidecar holds it in process memory and issues a 32-byte random session token used as `X-Session-Token` thereafter. 1-hour rolling TTL, auto re-register on 401.
+  - **Anthropic request sanitization**: `/api/claude/messages` whitelists model (`claude-sonnet-4-5-20250929`, `claude-haiku-4-5-20250929`), caps `max_tokens` at 4096, allows only `web_search_20250305` as a tool.
+  - **CORS allowlist** replaces `*`: `tauri://localhost`, `http://tauri.localhost`, `https://tauri.localhost`, and the dev Vite ports.
+  - **Tauri CSP** is now a strict policy (default-src self, no inline scripts, only the sidecar + tauri:// + ipc: as connect-src).
+  - **Tauri capabilities pruned**: dropped `fs`, `shell`, `process` plugins entirely from Cargo + capabilities. Kept `sql`, `dialog (allow-save)`, `updater`, and core. `withGlobalTauri` flipped to `false`.
+  - **Release workflow** now creates **drafts** so a stray tag push can't ship.
+  - **`keyPrefix` removed** from `/api/claude/test` responses.
+  - **`carrier.website`** now goes through `z.string().url()` + http/https filter at parse time; no more `<a href={…}>` for `javascript:` strings.
+  - **Settings export split**: separate "Preferences only" (safe) and "Export everything (key + history)" (with confirm-dialog warning). UI no longer says "share" — clarified as backup.
+  - **Lock screen**: added a **"Generate random"** button (8-syllable + digits + symbol) and a visible warning that the in-source suggested passcode is weak by definition.
+  - **Misleading copy fixed**: API key description no longer claims "never sent anywhere except api.anthropic.com" — explicit about the local sidecar hop.
+  - **Dead code removed**: `server/routes/{settings,blacklist,budget}.ts`, `server/lib/storage.ts`, "Send to CRM" button, broken "More" button.
+- **Deferred**: encrypting SQLite `search_history` at rest (audit P2.10) — significant refactor, separate session.
+- **Files touched:** `.gitignore`, `server/routes/auth.ts` (new), `server/routes/claude.ts`, `server/index.ts`, `src/core/claude-client.ts`, `src/core/runtime-secrets.ts`, `src/core/settings-store.ts`, `src/components/LockScreen.tsx`, `src/pages/Settings.tsx`, `src/skills/leads/{schemas.ts,handler.ts,manifest.ts,ResultView.tsx}`, `src-tauri/{tauri.conf.json,Cargo.toml,capabilities/default.json,src/lib.rs}`, `.github/workflows/release.yml`
+
 ### palette-v2
 
 - **Type:** ui

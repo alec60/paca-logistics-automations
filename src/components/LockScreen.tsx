@@ -6,7 +6,7 @@
 // On successful unlock, decrypts the stored apiKey ciphertext into the
 // in-memory runtime-secrets store.
 import { useEffect, useState } from "react";
-import { Lock, KeyRound, AlertCircle, Copy } from "lucide-react";
+import { Lock, KeyRound, AlertCircle, Copy, Dice5 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useLockStore, SUGGESTED_PASSCODE } from "../core/lock-store";
@@ -84,6 +84,22 @@ export function LockScreen() {
     }
   }
 
+  function generateRandom() {
+    // 4 short syllables + 4 random digits + symbol — strong but readable.
+    const words = [
+      "Camion", "Fret", "Route", "Cargo", "Atlas", "Boreal", "Erable",
+      "Granite", "Nord", "Sud", "Est", "Ouest", "Glace", "Rapide", "Pin",
+    ];
+    const pick = () => words[Math.floor(Math.random() * words.length)];
+    const digits = String(Math.floor(1000 + Math.random() * 9000));
+    const sym = "!@#$%&".charAt(Math.floor(Math.random() * 6));
+    const passcode = `${pick()}-${pick()}-${digits}${sym}`;
+    setPass(passcode);
+    setConfirm(passcode);
+    // Show it briefly in the clipboard so the user can save it.
+    void navigator.clipboard?.writeText(passcode).catch(() => {});
+  }
+
   const mode: "setup" | "unlock" = isInitialized ? "unlock" : "setup";
 
   return (
@@ -109,8 +125,16 @@ export function LockScreen() {
 
         <form className="mt-6 flex flex-col gap-3" onSubmit={onSubmit}>
           {mode === "setup" && (
-            <div className="rounded-md border border-border-subtle bg-surface-2 p-3 text-xs">
-              <div className="font-medium text-text">Suggested passcode</div>
+            <div className="flex flex-col gap-2 rounded-md border border-warning/40 bg-warning/5 p-3 text-xs">
+              <div className="flex items-start gap-2 text-warning">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>
+                  Pick a passcode <strong>only you know</strong>. The suggested
+                  one below is published in this app's source — a remembered
+                  attacker would try it first. Prefer the random generator or
+                  your own phrase.
+                </span>
+              </div>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <code className="font-mono text-accent">{SUGGESTED_PASSCODE}</code>
                 <div className="flex gap-1">
@@ -127,12 +151,20 @@ export function LockScreen() {
                     onClick={useSuggested}
                     className="rounded-pill border border-border-subtle px-2 py-0.5 text-[10px] hover:bg-surface-3"
                   >
-                    Use this
+                    Use suggested
+                  </button>
+                  <button
+                    type="button"
+                    onClick={generateRandom}
+                    className="inline-flex items-center gap-1 rounded-pill bg-gradient-accent px-2 py-0.5 text-[10px] text-accent-text shadow-glow"
+                  >
+                    <Dice5 className="h-3 w-3" />
+                    Generate random
                   </button>
                 </div>
               </div>
-              <div className="mt-2 text-text-dim">
-                Or pick your own — anything ≥ 6 characters.
+              <div className="text-text-dim">
+                Or pick your own — anything ≥ 6 characters. Save it somewhere safe; loss = data loss.
               </div>
             </div>
           )}

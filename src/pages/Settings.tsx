@@ -99,13 +99,26 @@ export function SettingsPage() {
     }
   }
 
-  function doExport() {
-    const json = exportSnapshot();
+  function doExport(opts: { includeSecrets: boolean; includeHistory: boolean }) {
+    if (opts.includeSecrets) {
+      const proceed = window.confirm(
+        locale === "fr"
+          ? "Cet export contient votre clé API CHIFFRÉE et l'historique des recherches. " +
+              "Quelqu'un qui obtient ce fichier ET votre passcode peut récupérer la clé. " +
+              "Ne le partagez qu'avec des coéquipiers de confiance, jamais sur un canal public. Continuer ?"
+          : "This export contains your ENCRYPTED API key and search history. " +
+              "Anyone who gets this file AND your passcode can recover the key. " +
+              "Only share with trusted teammates, never on a public channel. Continue?",
+      );
+      if (!proceed) return;
+    }
+    const json = exportSnapshot(opts);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `transport-paca-settings-${new Date().toISOString().slice(0, 10)}.json`;
+    const suffix = opts.includeSecrets ? "-full" : "-safe";
+    a.download = `transport-paca-settings${suffix}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -151,8 +164,8 @@ export function SettingsPage() {
           <CardTitle>{t("settings.api_key")}</CardTitle>
           <CardDescription>
             {locale === "fr"
-              ? "Clé API Anthropic. Chiffrée localement avec votre passcode (AES-GCM 256). Jamais envoyée ailleurs que sur api.anthropic.com."
-              : "Anthropic API key. Encrypted locally with your passcode (AES-GCM 256). Never sent anywhere except api.anthropic.com."}
+              ? "Clé API Anthropic. Chiffrée localement avec votre passcode (AES-GCM 256). À l'usage, la clé est confiée au composant local de l'application (sidecar 127.0.0.1) qui appelle api.anthropic.com pour vous."
+              : "Anthropic API key. Encrypted locally with your passcode (AES-GCM 256). At call time, the key is held by the app's local component (sidecar 127.0.0.1) which calls api.anthropic.com on your behalf."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -325,10 +338,22 @@ export function SettingsPage() {
               : "Export or import the full state (encrypted key, pins, history). Real-time sync needs a backend — not yet wired."}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2 sm:flex-row">
-          <Button type="button" variant="outline" onClick={doExport}>
+        <CardContent className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => doExport({ includeSecrets: false, includeHistory: false })}
+          >
             <Download className="h-4 w-4" />
-            {locale === "fr" ? "Exporter JSON" : "Export JSON"}
+            {locale === "fr" ? "Exporter (préférences seulement)" : "Export (preferences only)"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => doExport({ includeSecrets: true, includeHistory: true })}
+          >
+            <Download className="h-4 w-4" />
+            {locale === "fr" ? "Exporter tout (avec clé + historique)" : "Export everything (key + history)"}
           </Button>
           <Button
             type="button"

@@ -1,31 +1,45 @@
-// Frontend Claude client — proxies through the local Tauri sidecar.
-// The sidecar holds the Anthropic API key in-process; the browser never sees it.
+// Frontend Claude client.
+//
+// Session protocol:
+//   1. After the lock screen unlocks the apiKey, call registerSession(apiKey)
+//      once. The sidecar stores the key in process memory and returns a
+//      short-lived bearer token.
+//   2. Subsequent calls (skill handler -> /api/claude/messages) send only
+//      X-Session-Token. The apiKey itself never crosses the loopback again.
+//   3. On a 401 the client auto-re-registers and retries once. If that also
+//      fails the caller sees the original error.
 
 const DEFAULT_SIDECAR_PORT = 19191;
 
 function sidecarBase(): string {
-  // In dev the sidecar listens on a fixed port; in production Tauri injects the
-  // chosen random port via window.__TP_SIDECAR_PORT__ at startup.
   const port =
     (window as unknown as { __TP_SIDECAR_PORT__?: number }).__TP_SIDECAR_PORT__ ??
     DEFAULT_SIDECAR_PORT;
   return `http://127.0.0.1:${port}`;
 }
 
+let sessionToken: string | null = null;
+let cachedApiKey: string | null = null; // kept only to re-register on 401
+
 export class SidecarError extends Error {
-  constructor(message: string, public status?: number) {
+  constructor(
+    message: string,
+    public status?: number,
+  ) {
     super(message);
     this.name = "SidecarError";
   }
 }
 
-export async function callSidecar<T>(
+async function rawFetch<T>(
   path: string,
-  init?: { method?: string; body?: unknown },
+  init?: { method?: string; body?: unknown; token?: string | null },
 ): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (init?.token) headers["X-Session-Token"] = init.token;
   const res = await fetch(`${sidecarBase()}${path}`, {
     method: init?.method ?? "GET",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: init?.body ? JSON.stringify(init.body) : undefined,
   });
   if (!res.ok) {
@@ -44,35 +58,80 @@ export async function callSidecar<T>(
   return (await res.json()) as T;
 }
 
-export interface SkillCallRequest {
-  skillSlug: string;
-  params: unknown;
-  apiKey: string;
-  locale: "en" | "fr";
+export async function registerSession(apiKey: string): Promise<void> {
+  cachedApiKey = apiKey;
+  const { sessionToken: token } = await rawFetch<{ sessionToken: string }>(
+    "/api/auth/register",
+    { method: "POST", body: { apiKey } },
+  );
+  sessionToken = token;
 }
 
-export async function callSkill<T>(req: SkillCallRequest): Promise<T> {
-  return callSidecar<T>(`/api/claude/${req.skillSlug}`, {
-    method: "POST",
-    body: { params: req.params, apiKey: req.apiKey, locale: req.locale },
-  });
+export async function logoutSession(): Promise<void> {
+  if (!sessionToken) return;
+  try {
+    await rawFetch("/api/auth/logout", { method: "POST", token: sessionToken });
+  } catch {
+    /* best effort */
+  }
+  sessionToken = null;
+  cachedApiKey = null;
 }
 
-// Tests an Anthropic API key with a 1-token ping. The sidecar makes the
-// actual API call so the key never reaches DevTools network logs.
+export function hasSession(): boolean {
+  return !!sessionToken;
+}
+
+async function callWithSession<T>(
+  path: string,
+  init: { method?: string; body?: unknown },
+): Promise<T> {
+  if (!sessionToken && cachedApiKey) {
+    await registerSession(cachedApiKey);
+  }
+  try {
+    return await rawFetch<T>(path, { ...init, token: sessionToken });
+  } catch (err) {
+    if (err instanceof SidecarError && err.status === 401 && cachedApiKey) {
+      // Session expired or sidecar restarted — re-register and retry once.
+      sessionToken = null;
+      await registerSession(cachedApiKey);
+      return await rawFetch<T>(path, { ...init, token: sessionToken });
+    }
+    throw err;
+  }
+}
+
+/** Bypasses the session flow — Settings hits this before registering. */
+export async function callSidecarUnauth<T>(
+  path: string,
+  init?: { method?: string; body?: unknown },
+): Promise<T> {
+  return rawFetch<T>(path, init);
+}
+
+/** Authenticated proxy call. apiKey never crosses the wire after register. */
+export async function callSidecar<T>(
+  path: string,
+  init: { method?: string; body?: unknown },
+): Promise<T> {
+  return callWithSession<T>(path, init);
+}
+
+// ─────────── /api/claude/test (no session) ───────────
+
 export interface TestKeyResult {
   ok: boolean;
   model?: string;
   status?: number;
   error?: string;
-  keyPrefix?: string;
   keyLength?: number;
   startsRight?: boolean;
   hint?: string;
 }
 
 export async function testApiKey(apiKey: string): Promise<TestKeyResult> {
-  return callSidecar<TestKeyResult>("/api/claude/test", {
+  return callSidecarUnauth<TestKeyResult>("/api/claude/test", {
     method: "POST",
     body: { apiKey },
   });
