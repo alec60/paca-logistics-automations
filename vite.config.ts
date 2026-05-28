@@ -20,7 +20,10 @@ export default defineConfig(async () => ({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["logo.svg"],
+      // .nojekyll lives next to index.html so a stray "Deploy from a branch"
+      // mode would still serve our assets — defense in depth, not a fix for
+      // the source-mode bug.
+      includeAssets: ["logo.svg", ".nojekyll"],
       manifest: {
         name: "Transport Paca",
         short_name: "Paca",
