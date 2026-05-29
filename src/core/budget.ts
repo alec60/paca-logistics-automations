@@ -8,13 +8,19 @@ function monthStartIso(now = new Date()): string {
   return d.toISOString();
 }
 
-// Web build (GitHub Pages): SQLite isn't available, so every reader returns
-// safe defaults and every writer no-ops. The budget gate becomes a soft cap
-// only the user can see — but it never blocks a search because of an
-// unreachable DB. Per-call cost is still computed and could be wired to a
-// future Cloudflare KV (see DEPLOY.md Part 5).
+// The budget gate is a soft cap and must NEVER block a search because of a
+// DB problem. On the web build SQLite is simply absent (expected); inside
+// Tauri the DB can still fail for other reasons (stale schema, locked file).
+// Either way readers return safe defaults and writers no-op — we fail OPEN.
+// Unexpected (non-web) errors are logged so they stay diagnosable.
 function isSqliteUnavailable(err: unknown): boolean {
   return err instanceof Error && /SQLite unavailable/.test(err.message);
+}
+
+function warnDbError(where: string, err: unknown): void {
+  if (!isSqliteUnavailable(err)) {
+    console.warn(`[budget] ${where} — DB unavailable, degrading:`, err);
+  }
 }
 
 export function createBudgetApi(): BudgetAPI {
@@ -28,8 +34,8 @@ export function createBudgetApi(): BudgetAPI {
       const n = v ? Number(v) : NaN;
       return Number.isFinite(n) && n > 0 ? n : DEFAULT_LIMIT;
     } catch (err) {
-      if (isSqliteUnavailable(err)) return DEFAULT_LIMIT;
-      throw err;
+      warnDbError("readLimit", err);
+      return DEFAULT_LIMIT;
     }
   }
 
@@ -42,8 +48,8 @@ export function createBudgetApi(): BudgetAPI {
       );
       return Number(rows[0]?.total ?? 0);
     } catch (err) {
-      if (isSqliteUnavailable(err)) return 0;
-      throw err;
+      warnDbError("readSpend", err);
+      return 0;
     }
   }
 
@@ -74,8 +80,8 @@ export function createBudgetApi(): BudgetAPI {
           [skillSlug, usd, meta ? JSON.stringify(meta) : null],
         );
       } catch (err) {
-        if (!isSqliteUnavailable(err)) throw err;
-        // Web build: silently skip — there's no persistent log.
+        warnDbError("logSpend", err);
+        // No persistent log when the DB is unavailable — best effort only.
       }
     },
   };
@@ -89,7 +95,6 @@ export async function setMonthlyLimit(usd: number): Promise<void> {
       [String(usd)],
     );
   } catch (err) {
-    if (err instanceof Error && /SQLite unavailable/.test(err.message)) return;
-    throw err;
+    warnDbError("setMonthlyLimit", err);
   }
 }

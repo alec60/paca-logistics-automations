@@ -18,10 +18,10 @@ interface Row {
   created_at: string;
 }
 
-// Web build (GitHub Pages) has no SQLite. Mirror the blacklist into a tiny
-// in-memory Set + a localStorage cache so it survives reloads. Same pattern
-// as the history mirror; per-device only, no cross-device sync until a
-// backend lands.
+// When SQLite is unavailable — the web build (GitHub Pages) has none, and the
+// Tauri DB can fail for other reasons — mirror the blacklist into a localStorage
+// cache so it survives reloads and never crashes a search. Same pattern as the
+// history mirror; per-device only, no cross-device sync until a backend lands.
 const WEB_KEY = "transport-paca-blacklist-web";
 
 interface WebEntry {
@@ -68,7 +68,8 @@ export function createBlacklistApi(): BlacklistAPI {
           created_at: r.created_at,
         }));
       } catch (err) {
-        if (!isSqliteUnavailable(err)) throw err;
+        if (!isSqliteUnavailable(err))
+          console.warn("[blacklist] DB unavailable, using local fallback:", err);
         return loadWeb().map((r) => ({
           id: r.id,
           company: r.company,
@@ -88,7 +89,8 @@ export function createBlacklistApi(): BlacklistAPI {
           [company.trim(), norm, reason ?? null],
         );
       } catch (err) {
-        if (!isSqliteUnavailable(err)) throw err;
+        if (!isSqliteUnavailable(err))
+          console.warn("[blacklist] DB unavailable, using local fallback:", err);
         const entries = loadWeb();
         if (!entries.some((e) => e.company_normalized === norm)) {
           entries.push({
@@ -109,7 +111,8 @@ export function createBlacklistApi(): BlacklistAPI {
         const db = await getDb();
         await db.execute("DELETE FROM blacklisted_carriers WHERE id = $1", [id]);
       } catch (err) {
-        if (!isSqliteUnavailable(err)) throw err;
+        if (!isSqliteUnavailable(err))
+          console.warn("[blacklist] DB unavailable, using local fallback:", err);
         saveWeb(loadWeb().filter((e) => e.id !== id));
       }
       logAudit("blacklist", `Removed entry #${id}`);
@@ -126,7 +129,8 @@ export function createBlacklistApi(): BlacklistAPI {
         );
         return rows.length > 0;
       } catch (err) {
-        if (!isSqliteUnavailable(err)) throw err;
+        if (!isSqliteUnavailable(err))
+          console.warn("[blacklist] DB unavailable, using local fallback:", err);
         return loadWeb().some((e) => e.company_normalized === norm);
       }
     },
@@ -140,7 +144,8 @@ export function createBlacklistApi(): BlacklistAPI {
         const banned = new Set(rows.map((r) => r.company_normalized));
         return carriers.filter((c) => !banned.has(normalizeCompany(c.company)));
       } catch (err) {
-        if (!isSqliteUnavailable(err)) throw err;
+        if (!isSqliteUnavailable(err))
+          console.warn("[blacklist] DB unavailable, using local fallback:", err);
         const banned = new Set(loadWeb().map((e) => e.company_normalized));
         return carriers.filter((c) => !banned.has(normalizeCompany(c.company)));
       }

@@ -14,6 +14,7 @@ import { cn } from "../lib/utils";
 interface Diagnostics {
   sidecar: "ok" | "fail" | "unknown";
   db: "ok" | "fail" | "unknown";
+  dbError: string | null;
   spend: number | null;
   limit: number | null;
 }
@@ -31,6 +32,7 @@ export function DevPanel() {
   const [diag, setDiag] = useState<Diagnostics>({
     sidecar: "unknown",
     db: "unknown",
+    dbError: null,
     spend: null,
     limit: null,
   });
@@ -60,9 +62,10 @@ export function DevPanel() {
           budgetApi.getCurrentSpend(),
           budgetApi.getMonthlyLimit(),
         ]);
-        if (alive) setDiag((d) => ({ ...d, db: "ok", spend, limit }));
-      } catch {
-        if (alive) setDiag((d) => ({ ...d, db: "fail" }));
+        if (alive) setDiag((d) => ({ ...d, db: "ok", dbError: null, spend, limit }));
+      } catch (err) {
+        if (alive)
+          setDiag((d) => ({ ...d, db: "fail", dbError: (err as Error).message }));
       }
     }
     void probe();
@@ -118,6 +121,11 @@ export function DevPanel() {
               value={diag.db}
               tone={diag.db === "ok" ? "good" : diag.db === "fail" ? "bad" : "muted"}
             />
+            {diag.dbError && (
+              <div className="-mt-1 break-words pl-1 text-[10px] text-danger">
+                {diag.dbError}
+              </div>
+            )}
             <Row
               label="spend"
               value={
