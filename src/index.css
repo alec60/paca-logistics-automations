@@ -4,7 +4,9 @@
   /* Shell. Main background is a darker steel grey; the sidebar/header frame
      that holds the automations is a near-black navy. Text on the shell is light. */
   --color-bg:               #2d323b;
-  --color-surface-1:        #151b2b;
+  /* Matches the brand-logo.png background navy so the header banner blends
+     seamlessly into the frame (no visible logo rectangle). */
+  --color-surface-1:        #071022;
   --color-surface-2:        #232c44;
   --color-surface-3:        #2f3a55;
   --color-border-subtle:    #2a3142;

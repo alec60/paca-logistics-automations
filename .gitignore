@@ -55,3 +55,6 @@ tauri-signing-*
 # OS junk
 *.swp
 *~
+
+# Brand source variants — the wired asset lives at public/brand-logo.png
+logo/
