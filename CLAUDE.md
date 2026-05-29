@@ -38,6 +38,7 @@ pnpm tauri build      # signed .msi
 - All user-visible strings via `t()` (i18next). French is default.
 - Animations capped at 120 ms.
 - Validate input at system boundaries with Zod.
+- **Form submits must use a `type="button"` + `onClick`, never a native submit button.** In the Tauri WebView (WebView2) a native `<form>` submit triggers a page navigation/reload instead of being handled by React — the action silently fails even though it works in a normal browser. This bit us on the leads Run Search button.
 - No real carrier names, phone numbers, emails, or business data in code, tests, fixtures, or commits — see Section 11 in `AGENTS.md`.
 
 ## Adding a new automation
@@ -117,3 +118,4 @@ When spawning a coordinated team, always:
 | Updater never fires | `pubkey` in `tauri.conf.json` doesn't match the GHA-signing private key |
 | Skill not in sidebar | `manifest.ts` must `default export` the `SkillManifest`; the registry uses `import.meta.glob` |
 | `pnpm dev` sidecar dies | check port 19191 isn't in use; override with `TP_SIDECAR_PORT` |
+| A button/form does nothing in the Tauri app but works in the browser | Native `<form>` submit triggers a WebView2 navigation/reload. Use a `type="button"` + `onClick`, not a native submit button. |

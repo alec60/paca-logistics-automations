@@ -83,6 +83,10 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
 
   return (
     <form
+      // The button below is type="button" + onClick rather than a native
+      // submit. In the Tauri WebView (WebView2) a native form submit triggers
+      // a webview navigation/reload instead of being handled by React, which
+      // silently resets the page. onClick avoids the submit event entirely.
       onSubmit={(e) => {
         e.preventDefault();
         submit();
@@ -164,7 +168,7 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
       <BlacklistSection />
 
       <div className="flex justify-end">
-        <Button type="submit" size="lg">
+        <Button type="button" size="lg" onClick={submit}>
           {locale === "fr" ? "Lancer la recherche" : "Run search"}
         </Button>
       </div>
