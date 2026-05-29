@@ -162,7 +162,11 @@ export function SettingsPage() {
               autoComplete="off"
               spellCheck={false}
             />
-            <Button type="submit" disabled={!draftKey.trim() || draftKey.trim() === apiKey}>
+            <Button
+              type="button"
+              onClick={() => save()}
+              disabled={!draftKey.trim() || draftKey.trim() === apiKey}
+            >
               <Check className="h-4 w-4" />
               {locale === "fr" ? "Confirmer" : "Confirm"}
             </Button>
@@ -343,7 +347,7 @@ export function SettingsPage() {
       </Card>
 
       <div className="flex items-center gap-3">
-        <Button type="submit">{t("settings.save")}</Button>
+        <Button type="button" onClick={() => save()}>{t("settings.save")}</Button>
         {savedAt && (
           <span className="text-xs text-success">
             ✓ {locale === "fr" ? "Enregistré à" : "Saved at"}{" "}

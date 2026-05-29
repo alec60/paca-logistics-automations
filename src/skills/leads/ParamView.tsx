@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useSettingsStore } from "../../core/settings-store";
 import { Button } from "../../components/ui/button";
 import { PillGroup } from "../../components/PillGroup";
@@ -22,7 +21,6 @@ interface Props {
 }
 
 export function ParamView({ onSubmit, defaultValues }: Props) {
-  const { t: _t } = useTranslation();
   const locale = useSettingsStore((s) => s.locale);
 
   const [truckTypes, setTruckTypes] = useState<string[]>(
