@@ -11,7 +11,6 @@ const modules = import.meta.glob("../skills/*/manifest.ts", {
 for (const [path, mod] of Object.entries(modules)) {
   const m = (mod as { default?: SkillManifest<unknown, unknown> }).default;
   if (!m) {
-    // eslint-disable-next-line no-console
     console.warn(`[skill-registry] ${path} has no default export — skipped`);
     continue;
   }

@@ -54,7 +54,6 @@ export function createServer() {
 
   app.use(
     (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      // eslint-disable-next-line no-console
       console.error("[sidecar]", err);
       res.status(500).json({ error: err.message || "Internal error" });
     },
@@ -67,7 +66,6 @@ if (process.env.TP_SIDECAR_START === "1") {
   const app = createServer();
   const port = Number(process.env.TP_SIDECAR_PORT ?? 19191);
   app.listen(port, "127.0.0.1", () => {
-    // eslint-disable-next-line no-console
     console.log(`[sidecar] listening on 127.0.0.1:${port}`);
   });
 }
