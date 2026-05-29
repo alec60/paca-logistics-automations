@@ -46,6 +46,9 @@ export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
     params.sectors.length ? `- Regional sectors (soft): ${params.sectors.join(", ")}` : "",
     params.cities.length ? `- Cities of interest: ${params.cities.join(", ")}` : "",
     params.lanes.length ? `- Preferred lanes: ${params.lanes.join(", ")}` : "",
+    params.custom_instructions
+      ? `\nAdditional instructions from the user (apply within the rules above): ${params.custom_instructions}`
+      : "",
     "",
     locale(l),
   ]

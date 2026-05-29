@@ -19,6 +19,9 @@ export const LeadsParams = z.object({
   sectors: z.array(z.string().regex(/^[A-Z]{2}-[NSEW]$/)).default([]),
   cities: z.array(z.string()).default([]),
   lanes: z.array(z.string().regex(/^[A-Z]{2}→[A-Z]{2}$/)).default([]),
+  // Optional free-text steer added to the prompt. Capped to keep token cost
+  // predictable and bounded at the system boundary.
+  custom_instructions: z.string().max(500).optional(),
 });
 export type LeadsParams = z.infer<typeof LeadsParams>;
 

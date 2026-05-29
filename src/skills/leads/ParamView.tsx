@@ -32,6 +32,9 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
   const [sectors, setSectors] = useState<string[]>(defaultValues?.sectors ?? []);
   const [cities, setCities] = useState<string[]>(defaultValues?.cities ?? []);
   const [lanes, setLanes] = useState<string[]>(defaultValues?.lanes ?? []);
+  const [customInstructions, setCustomInstructions] = useState<string>(
+    defaultValues?.custom_instructions ?? "",
+  );
 
   function toggleProvince(code: ProvinceCode) {
     setProvinces((prev) => {
@@ -71,6 +74,7 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
       sectors,
       cities,
       lanes,
+      custom_instructions: customInstructions.trim() || undefined,
     });
   }
 
@@ -92,7 +96,7 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
       className="mx-auto flex max-w-4xl flex-col gap-7 p-8"
     >
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
           {locale === "fr" ? "Recherche de transporteurs" : "Carrier lead finder"}
         </h1>
         <p className="mt-1 text-sm text-text-muted">
@@ -161,6 +165,30 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
 
       <Field label={locale === "fr" ? "Trajets préférés" : "Preferred lanes"}>
         <LanePicker selectedLanes={lanes} onToggleLane={toggleLane} />
+      </Field>
+
+      <Field
+        label={
+          locale === "fr"
+            ? "Instructions personnalisées (optionnel)"
+            : "Custom instructions (optional)"
+        }
+      >
+        <textarea
+          value={customInstructions}
+          onChange={(e) => setCustomInstructions(e.target.value)}
+          maxLength={500}
+          rows={3}
+          placeholder={
+            locale === "fr"
+              ? "Ex. : privilégier les transporteurs avec hayon élévateur, éviter les très grandes flottes…"
+              : "e.g. prefer carriers with a liftgate, avoid very large fleets…"
+          }
+          className="w-full resize-y rounded-lg border border-transparent bg-input-bg px-4 py-2.5 text-sm text-input-text placeholder:text-input-placeholder hover:bg-input-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
+        />
+        <span className="text-right text-[10px] text-text-dim">
+          {customInstructions.length}/500
+        </span>
       </Field>
 
       <BlacklistSection />
