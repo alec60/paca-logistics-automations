@@ -2,6 +2,13 @@
 
 Project-specific instructions for any Claude Code / Ruflo session working in this repo. Read alongside `AGENTS.md` (architecture + ops) and `README.md` (humans).
 
+## Agent tooling & token policy
+
+Two very different budgets — don't confuse them:
+
+- **Coding agents (the bots editing this repo): spend freely.** Use the full toolset — spawn subagents, run the dev server, drive the browser for visual checks, read as much as needed, take as many turns/tokens as the task requires. There is **no token/$ budget** on development work; the only thing that matters is a correct, complete, verified result. Bias toward over-verifying (typecheck, tests, real screenshots) rather than guessing.
+- **Runtime automations (skills that call the Anthropic API): stay lean.** Every skill call costs real money per token. Keep `max_tokens` conservative, `web_search` `max_uses` low, and prompts tight. Always go through the budget gate (`ctx.budget.canAffordEstimate()`) and the cost estimator. Efficiency is a hard requirement here, the opposite of the coding-agent rule above.
+
 ## Project at a glance
 
 Carrier intelligence desktop app. Tauri 2 (Rust + WebView) shipping a React 18 + TypeScript + Tailwind v4 frontend. Local Node sidecar proxies Anthropic API calls so the API key never reaches the renderer.
@@ -109,6 +116,15 @@ When spawning a coordinated team, always:
 - Spawn ALL agents in one message with `run_in_background: true`.
 - After spawning, STOP and wait for results. Don't poll.
 
+## Dual-runtime & resilience (learned the hard way)
+
+The app runs in two places and a few things differ — verify changes in **both** the browser and the Tauri desktop app, since each masks the other's bugs.
+
+- **Two Claude transports.** Tauri uses the local sidecar (response is wrapped as `{ message, usage }`); the web build uses direct mode (`VITE_DIRECT_ANTHROPIC=1`, raw Anthropic body with `content`/`usage` at the top level). `claude-client` must normalize direct mode to the same `{ message }` envelope handlers expect (`response.message.content`). Forgetting this crashes only the web build with "Cannot read properties of undefined (reading 'content')".
+- **The DB is best-effort — never block on it.** `getDb()` only fails with the `SQLite unavailable` sentinel in the browser; inside Tauri it can fail for other reasons (locked file, etc.). Budget/blacklist/history must **fail open on ANY DB error** (return safe defaults / no-op + `console.warn`), never rethrow — otherwise a bookkeeping DB hiccup silently kills a search at the budget gate before the Anthropic call.
+- **Test-key vs search-key.** Settings "Test key" sends the *typed* key straight to Anthropic; the actual search uses the *stored/registered* key. Saving must call `setApiKeyFromPlain` (which re-registers with the sidecar) or the search 401s with a stale key while Test passes. DevPanel shows the active key's last 6 chars — use it to confirm.
+- **Stale DBs from old identifiers.** Changing `tauri.conf.json` `identifier` orphans the old `%APPDATA%\<old-id>\transport-paca.db` and starts a fresh one. Both are fine; just know which the running app uses.
+
 ## Quick troubleshooting
 
 | Symptom | Likely cause |
@@ -119,3 +135,5 @@ When spawning a coordinated team, always:
 | Skill not in sidebar | `manifest.ts` must `default export` the `SkillManifest`; the registry uses `import.meta.glob` |
 | `pnpm dev` sidecar dies | check port 19191 isn't in use; override with `TP_SIDECAR_PORT` |
 | A button/form does nothing in the Tauri app but works in the browser | Native `<form>` submit triggers a WebView2 navigation/reload. Use a `type="button"` + `onClick`, not a native submit button. |
+| Search 401s `invalid x-api-key` but Test key passes | The search uses the stored/registered key, not the typed one. Re-save the key (registers it); verify via DevPanel's `apiKey …last6`. |
+| Search does nothing / `db: fail` in DevPanel | A DB error is reaching a caller that rethrows. Budget/blacklist must fail open; check the DevPanel red DB error text. |

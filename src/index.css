@@ -1,30 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* Mid-slate blue-grey — matches the reference dashboard background.
-     Previous values were near-black; per the user, the reference is the
-     lighter blue-grey shown in the swatch. Locked dark mode until a
-     Settings toggle ships. */
-  --color-bg:               #384358;
-  --color-surface-1:        #424d65;
-  --color-surface-2:        #4d5872;
-  --color-surface-3:        #5b6680;
-  --color-border-subtle:    #4d5872;
-  --color-border:           #5b6680;
-  --color-border-strong:    #6c7896;
+  /* Shell. Main background is a darker steel grey; the sidebar/header frame
+     that holds the automations is a near-black navy. Text on the shell is light. */
+  --color-bg:               #2d323b;
+  --color-surface-1:        #151b2b;
+  --color-surface-2:        #232c44;
+  --color-surface-3:        #2f3a55;
+  --color-border-subtle:    #2a3142;
+  --color-border:           #39435c;
+  --color-border-strong:    #4a5775;
 
   --color-text:             #eef0f6;
-  --color-text-muted:       #9098ac;
-  --color-text-dim:         #6a728a;
+  --color-text-muted:       #9aa2b6;
+  --color-text-dim:         #6f7890;
 
-  /* "Usable menus" — the cards / surfaces the user interacts with.
-     Per the reference: card itself is near-white with a faint cool tint,
-     and the input pills inside are a clearly bluish-grey so the layering
-     reads at a glance. Text on these light surfaces is dark slate. */
-  --color-menu-bg:          #f6f8fc;
-  --color-menu-bg-strong:   #e9edf4;
-  --color-input-bg:         #bcc4d2;
-  --color-input-bg-hover:   #aeb6c5;
+  /* Cards / interactive surfaces — a blueish light grey (not pure white) so the
+     cards read as light panels floating on the darker shell. Text on them is dark. */
+  --color-menu-bg:          #cdd6e4;
+  --color-menu-bg-strong:   #bcc7d9;
+  --color-input-bg:         #b3bed0;
+  --color-input-bg-hover:   #a6b2c6;
   --color-input-text:       #1c2030;
   --color-input-placeholder:#525c70;
 
