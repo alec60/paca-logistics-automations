@@ -13,7 +13,7 @@ export function BrandLogo({ className }: Props) {
     <img
       src={`${import.meta.env.BASE_URL}brand-logo.png`}
       alt="Transport Paca — Carrier Intel"
-      className={cn("h-10 w-auto select-none", className)}
+      className={cn("h-12 w-auto select-none", className)}
       draggable={false}
     />
   );

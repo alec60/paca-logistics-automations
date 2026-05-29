@@ -139,7 +139,7 @@ export function SettingsPage() {
 
   return (
     <form onSubmit={save} className="mx-auto flex max-w-3xl flex-col gap-6 p-8">
-      <h1 className="text-xl font-semibold tracking-tight">{t("settings.title")}</h1>
+      <h1 className="font-display text-xl font-semibold tracking-tight">{t("settings.title")}</h1>
 
       <Card>
         <CardHeader>

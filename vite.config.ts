@@ -23,21 +23,21 @@ export default defineConfig(async () => ({
       // .nojekyll lives next to index.html so a stray "Deploy from a branch"
       // mode would still serve our assets — defense in depth, not a fix for
       // the source-mode bug.
-      includeAssets: ["logo.svg", ".nojekyll"],
+      includeAssets: ["icon-512.png", ".nojekyll"],
       manifest: {
         name: "Transport Paca",
         short_name: "Paca",
         description: "Carrier intelligence for Transport Paca.",
-        theme_color: "#161a26",
-        background_color: "#161a26",
+        theme_color: "#071022",
+        background_color: "#071022",
         display: "standalone",
         start_url: base,
         scope: base,
         icons: [
           {
-            src: "logo.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
             purpose: "any maskable",
           },
         ],
@@ -48,9 +48,17 @@ export default defineConfig(async () => ({
         navigateFallbackDenylist: [/^\/api\//, /^\/healthz/],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.origin === "https://rsms.me",
+            urlPattern: ({ url }) => url.origin === "https://fonts.googleapis.com",
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "google-fonts-stylesheets" },
+          },
+          {
+            urlPattern: ({ url }) => url.origin === "https://fonts.gstatic.com",
             handler: "CacheFirst",
-            options: { cacheName: "rsms-fonts" },
+            options: {
+              cacheName: "google-fonts-webfonts",
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
           },
         ],
       },

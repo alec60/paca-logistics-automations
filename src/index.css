@@ -40,7 +40,9 @@
   --color-danger:           #f87171;
   --color-info:             #38bdf8;
 
-  --font-sans:              "Inter", system-ui, sans-serif;
+  --font-sans:              "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  /* Display face for headings / titles — a touch more character. */
+  --font-display:           "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono:              "JetBrains Mono", ui-monospace, monospace;
 
   --radius-sm:              10px;
