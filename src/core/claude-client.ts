@@ -149,11 +149,15 @@ async function callWithSession<T>(
     // Only /api/claude/messages is supported in direct mode; other paths
     // would need their own mapping.
     const reqBody = (init.body as { request?: unknown })?.request ?? init.body;
-    return rawAnthropic<T>(path, {
+    const anthropic = await rawAnthropic<{ usage?: unknown }>(path, {
       method: init.method ?? "POST",
       body: reqBody,
       apiKey: cachedApiKey,
     });
+    // Anthropic returns the message object at the top level (content/usage),
+    // but the sidecar wraps it as { message, usage }. Normalize to that
+    // envelope so handlers read response.message.content in both modes.
+    return { message: anthropic, usage: anthropic.usage } as T;
   }
   if (!sessionToken && cachedApiKey) {
     await registerSession(cachedApiKey);
