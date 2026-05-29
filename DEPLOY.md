@@ -187,9 +187,10 @@ Send them the URL. Each one does this once:
 
 When the app opens:
 
-1. **Lock screen** appears. They pick a passcode and copy it somewhere safe.
-2. **Settings** page (auto-redirected because no API key yet). They paste their Anthropic API key + Confirm.
-3. They land on the leads page. Done.
+1. **Settings** page (auto-redirected because no API key yet). They paste their Anthropic API key + Confirm.
+2. They land on the leads page. Done.
+
+There is no passcode prompt — the app opens straight in. Note this means anyone with the machine has full access to its data; physical/OS-level security is the only gate now.
 
 **Shared blacklist / pinned cities across the team** is not automatic on GitHub Pages — each install has its own localStorage. Three options, in increasing complexity:
 

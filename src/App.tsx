@@ -1,19 +1,32 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { CommandPalette } from "./components/CommandPalette";
 import { DevPanel } from "./components/DevPanel";
-import { LockScreen } from "./components/LockScreen";
-import { LockButton } from "./components/LockButton";
 import { BrandLogo } from "./components/BrandLogo";
-import { useLockStore } from "./core/lock-store";
+import { COMPANY_PASSCODE, useLockStore } from "./core/lock-store";
+import { useSettingsStore } from "./core/settings-store";
+import { useRuntimeSecrets } from "./core/runtime-secrets";
 
 export default function App() {
-  // Lock gate — must come BEFORE the rest of the app renders. There's no
-  // "skip" path: every UI consumer reads `unlockedAt` to verify the key is
-  // in memory.
+  // No user-facing passcode prompt anymore. The embedded key still drives the
+  // at-rest decryption of the stored API key, so we apply it automatically on
+  // launch and then load the ciphertext into the in-memory runtime store.
   const unlockedAt = useLockStore((s) => s.unlockedAt);
-  if (!unlockedAt) return <LockScreen />;
+  const unlock = useLockStore((s) => s.unlock);
+  const apiKeyEncrypted = useSettingsStore((s) => s.apiKeyEncrypted);
+  const loadFromCiphertext = useRuntimeSecrets((s) => s.loadFromCiphertext);
+
+  useEffect(() => {
+    if (unlockedAt) return;
+    (async () => {
+      const result = await unlock(COMPANY_PASSCODE);
+      if (result.ok) await loadFromCiphertext(apiKeyEncrypted);
+    })();
+  }, [unlockedAt, unlock, loadFromCiphertext, apiKeyEncrypted]);
+
+  if (!unlockedAt) return null;
 
   return (
     <div className="flex h-full">
@@ -28,7 +41,6 @@ export default function App() {
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
-            <LockButton />
           </div>
         </header>
         <main className="flex-1 overflow-auto bg-bg">

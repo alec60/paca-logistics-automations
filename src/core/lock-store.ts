@@ -1,23 +1,19 @@
-// Lock-screen state.
+// At-rest key derivation for the stored API key.
 //
-// **Company-shared passcode model.** The Transport Paca install is gated by
-// a single passcode hardcoded in this file (COMPANY_PASSCODE). Every teammate
-// uses the same one; the lock screen never offers a "set your own" flow.
+// **No user-facing passcode.** The app no longer prompts for a passcode; App
+// applies the embedded COMPANY_PASSCODE automatically on launch. It survives
+// only as the password that derives the AES key for the apiKey ciphertext.
 //
 // Honest threat model:
-//   - Stops casual access (someone opening the URL who isn't on the team).
-//   - Does NOT stop anyone who reads this source file or the JS bundle.
-//   - The encryption around the apiKey ciphertext is mostly ceremonial under
-//     this model — anyone with the source can derive the same key from the
-//     same passcode. For real protection of sensitive carrier / client data
-//     a server-side gate (Cloudflare Worker + token, Supabase RLS, etc.) is
+//   - There is NO access gate. Anyone who can open the app sees everything.
+//   - The encryption around the apiKey ciphertext is purely ceremonial —
+//     the key is embedded in this source, so anyone with the bundle can
+//     derive it. For real protection of sensitive carrier / client data a
+//     server-side gate (Cloudflare Worker + token, Supabase RLS, etc.) is
 //     required. See DEPLOY.md Part 5.
 //
-// Rate limiting still kicks in (5 wrong attempts → 60s cooldown) so a
-// drive-by visitor can't dictionary-attack the field in seconds.
-//
-// CryptoKey is held in module-private memory only; refresh clears it and
-// the user has to re-enter the company passcode.
+// CryptoKey is held in module-private memory only; refresh clears it and the
+// app re-derives it from the embedded passcode on next launch.
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
@@ -34,7 +30,8 @@ export function getLockKey(): CryptoKey | null {
   return memoryKey;
 }
 
-/** The one and only passcode that opens this install. */
+/** Embedded password that derives the at-rest key for the API-key ciphertext.
+ *  Applied automatically on launch — not a user-facing credential. */
 export const COMPANY_PASSCODE = "Camions-Paca-2026";
 
 export interface LockState {

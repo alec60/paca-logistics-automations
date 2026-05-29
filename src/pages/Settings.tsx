@@ -54,7 +54,7 @@ export function SettingsPage() {
         setApiKeyEncrypted(ct);
       } catch (err) {
         setSavedAt(null);
-        // Likely locked — should not happen since lock screen gates this page.
+        // Should not happen — the app auto-applies the embedded key on launch.
         console.error(err);
       }
     }
