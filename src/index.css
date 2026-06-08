@@ -116,6 +116,40 @@
   * {
     transition-duration: 120ms;
   }
+
+  /* ---- Light theme -------------------------------------------------------
+     Scoped via [data-theme="light"] (set on <main> by App.tsx) so the dark
+     navy chrome — sidebar + header — stays put (the brand logo has a baked
+     navy background). Only the content surface re-themes. Accent + the navy
+     surface-1 are intentionally shared across both themes. */
+  [data-theme="light"] {
+    color-scheme: light;
+    /* Re-anchor the inherited text color inside the light scope. `body` resolves
+       `color: var(--color-text)` to the dark value, and inherited color passes
+       the *computed* value down — so elements without an explicit text-* class
+       (e.g. page <h1> titles) would stay near-white. Setting color here makes
+       the light scope inherit dark text. */
+    color: var(--color-text);
+    --color-bg:               #f3f4f6;
+    --color-surface-2:        #eceef2;
+    --color-surface-3:        #e2e5ea;
+    --color-border-subtle:    #e4e6eb;
+    --color-border:           #d3d7df;
+    --color-border-strong:    #b9bfca;
+
+    --color-text:             #1b1f27;
+    --color-text-muted:       #586074;
+    --color-text-dim:         #8a91a1;
+
+    --color-menu-bg:          #ffffff;
+    --color-menu-bg-strong:   #f1f2f5;
+    --color-input-bg:         #eef0f3;
+    --color-input-bg-hover:   #e4e7ec;
+    --color-input-text:       #1b1e26;
+    --color-input-placeholder:#8990a0;
+
+    --color-accent-bg:        rgba(250, 111, 58, 0.12);
+  }
 }
 
 @layer utilities {

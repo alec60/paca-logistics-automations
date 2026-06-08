@@ -26,6 +26,8 @@ export function SettingsPage() {
   const setApiKeyEncrypted = useSettingsStore((s) => s.setApiKeyEncrypted);
   const locale = useSettingsStore((s) => s.locale);
   const setLocale = useSettingsStore((s) => s.setLocale);
+  const theme = useSettingsStore((s) => s.theme);
+  const setTheme = useSettingsStore((s) => s.setTheme);
   const monthlyBudgetUsd = useSettingsStore((s) => s.monthlyBudgetUsd);
   const setMonthlyBudgetUsd = useSettingsStore((s) => s.setMonthlyBudgetUsd);
   const devMode = useSettingsStore((s) => s.devMode);
@@ -243,6 +245,37 @@ export function SettingsPage() {
                 aria-pressed={locale === l}
               >
                 {l === "fr" ? "Français" : "English"}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.theme")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div role="group" aria-label={t("settings.theme")} className="flex gap-2">
+            {(["system", "light", "dark"] as const).map((th) => (
+              <Button
+                key={th}
+                type="button"
+                variant={theme === th ? "default" : "outline"}
+                onClick={() => setTheme(th)}
+                aria-pressed={theme === th}
+              >
+                {th === "system"
+                  ? locale === "fr"
+                    ? "Système"
+                    : "System"
+                  : th === "light"
+                    ? locale === "fr"
+                      ? "Clair"
+                      : "Light"
+                    : locale === "fr"
+                      ? "Sombre"
+                      : "Dark"}
               </Button>
             ))}
           </div>

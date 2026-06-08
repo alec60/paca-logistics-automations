@@ -281,3 +281,12 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Description:** Design-system refresh for a cleaner, more modern feel — layout unchanged. De-blued the neutral palette to true greys (canvas `#1b1e25`; light cards `#e8eaee`, inputs `#d7dae1`), while the deep-navy nav rail + header stay (brand-logo blend). Replaced the coral→yellow gradient + orange glow with one solid confident orange accent (`#fa6f3a`, keyed to the logo) and subtle elevation. Moderated the fully-pill inputs/buttons to crisp 14 px radii — `--radius-pill` is now reserved for chips/tags. Added hairline borders on light surfaces.
 - **Files touched:** `src/index.css` (`@theme` tokens + `.shadow-soft`/`.shadow-glow`), `src/components/ui/{button,input,card}.tsx`
 - **Notes:** Token-driven, so the refresh propagates app-wide with zero layout churn. Verified live in-browser: canvas `#1b1e25`, accent button (solid `#fa6f3a`, dark text, 14 px, no glow), neutral inputs (`#d7dae1`, 14 px), chips still pill. Supersedes the visual direction of `palette-v2` / `menu-cards-light` (kept for history). Iterate accent hue / radius / card lightness freely — all live in `index.css @theme`.
+
+### light-mode
+
+- **Type:** ui
+- **Added:** 2026-06-08
+- **Status:** shipped
+- **Description:** Light / Dark / System theme switch. Adds a full light theme for the content area; "System" follows the OS preference and live-updates if it changes. Toggle from the header (Monitor / Sun / Moon) or Settings → Theme; persists via the settings store.
+- **Files touched:** `src/index.css` (`[data-theme="light"]` token overrides), `src/App.tsx` (`useResolvedTheme` + `data-theme` on `<main>`), `src/components/ThemeToggle.tsx` (new), `src/pages/Settings.tsx` (Theme card)
+- **Notes:** Theme is scoped to `<main>` via `data-theme`, so the dark-navy chrome (sidebar + header) stays fixed — the `brand-logo.png` has a baked navy background, so a light header would show a navy box. The light scope re-anchors `color` so inherited-color elements (page `<h1>` titles) flip to dark text. Known limitation: portaled overlays (command palette, dialogs) render outside `<main>`, so they stay dark in light mode — acceptable for now; revisit if a fully-light modal is wanted.

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **shippers** automation ("Recherche d'expéditeurs" / "Shipper lead finder"): finds Canadian businesses likely to need freight hauled — the brokerage's potential customers — with public contact info and a buying-signal rationale per prospect. Mirrors the `leads` block and deliberately shares the freight-equipment + lane vocabulary so found shippers line up with found carriers for matching.
+- **Light / Dark / System** theme switch: a full light theme for the content area (OS-preference-aware "System"), toggleable from the header or Settings → Theme. The dark-navy chrome stays fixed (brand-logo constraint).
 
 ### Changed
 - UI design-system refresh (palette v3): de-blued the neutral palette to clean greys, replaced the coral→yellow gradient + orange glow with one solid orange accent (`#fa6f3a`), moderated the fully-pill inputs/buttons to crisp 14 px radii (pill kept for chips), added hairline borders + refined elevation. Token-driven in `src/index.css @theme`; layout unchanged.
