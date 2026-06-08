@@ -1,0 +1,28 @@
+{
+  "name": "Shipper lead finder",
+  "description": "Find Canadian businesses that need freight hauled.",
+  "params": {
+    "industries": "Industries",
+    "freight_equipment": "Freight equipment",
+    "volume": "Shipping volume",
+    "count": "Number of prospects",
+    "provinces": "Provinces & territories",
+    "sectors": "Regional sectors",
+    "cities": "Cities",
+    "lanes": "Typical lanes"
+  },
+  "result": {
+    "summary": "Summary",
+    "shippers": "Shippers",
+    "sources": "Sources",
+    "blacklisted_hidden": "{{count}} hidden by blacklist · view",
+    "actions": {
+      "copy_contact": "Copy contact",
+      "save_file": "Save as file",
+      "blacklist": "Blacklist",
+      "copy_table": "Copy",
+      "copy_table_hint": "Pastes into Excel/Sheets as columns",
+      "new_search": "New search"
+    }
+  }
+}

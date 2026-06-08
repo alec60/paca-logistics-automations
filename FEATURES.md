@@ -32,6 +32,17 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Files touched:** `src/skills/leads/{manifest.ts, schemas.ts, prompt.ts, handler.ts, ParamView.tsx, ResultView.tsx, data.ts, i18n/{en,fr}.json}`, `src/components/{CanadaMap.tsx, TerritoryRow.tsx, CitySearch.tsx, LanePicker.tsx}`
 - **Notes:** Uses Anthropic's hosted `web_search` tool (capped at 3 calls for Tier 1 rate limits). Pre-call budget gate via `ctx.budget.canAffordEstimate()`. Post-call blacklist filter via `ctx.blacklist.filterCarriers()`. Cost computed from real `usage` and logged to `spend_log`.
 
+### shippers
+
+- **Type:** automation
+- **Added:** 2026-06-08
+- **Status:** shipped
+- **Description:** Finds Canadian businesses (shippers) most likely to need freight hauled — the brokerage's potential customers — each with public contact details and a concrete buying-signal rationale. The demand-side counterpart to the supply-side `leads` carrier finder.
+- **Inputs:** industries (14, multi), freight_equipment (10, multi — the SAME vocabulary as the leads truck types, so a found shipper can be matched to found carriers), volume (any / occasional / regular / high), count (5/10/15/20/30/50), provinces & territories (Canada map + region quick-picks), regional sectors (PROV-X soft filter), cities (type-ahead), lanes (2-step From×To builder), custom_instructions (≤500 chars)
+- **Output:** `ShippersResult { query_summary, shippers[], sources[], cost_estimate_usd, blacklisted_count }` — each shipper has company, industry, province, city, est_volume, freight_profile, why_prospect, lanes, contact_name, phone, email, website.
+- **Files touched:** `src/skills/shippers/{manifest.ts, schemas.ts, prompt.ts, handler.ts, ParamView.tsx, ResultView.tsx, data.ts, i18n/{en,fr}.json}`, `tests/unit/shippers-schemas.test.ts`, `tests/e2e/shippers.spec.ts`
+- **Notes:** Reuses the leads skill's shared components (`CanadaMap`, `RegionPicker`, `CitySearch`, `LanePicker`, `BlacklistSection`, `PillGroup`) and re-exports Canadian geography from `../leads/data` (single source of truth). Uses Anthropic's hosted `web_search` (capped at 3 for Tier 1). Pre-call budget gate reuses `estimateLeadSearchCost`; post-call `blacklistApi.filterCarriers()` matches on `company`; contact (phone or email) required with the same last-resort fallback as leads. The prompt explicitly EXCLUDES carriers, brokers, 3PLs, and couriers so results are genuine shippers (customers), not competitors. Freight-equipment + lane vocabularies are deliberately shared with `leads` so the two automations line up for shipper↔carrier matching.
+
 ---
 
 ## UI / infra
