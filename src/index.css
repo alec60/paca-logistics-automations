@@ -131,6 +131,12 @@
        the light scope inherit dark text. */
     color: var(--color-text);
     --color-bg:               #f6f7f9;
+    /* surface-1 is the brand navy at the root (shared by the sidebar/header,
+       which sit OUTSIDE this light scope and stay navy). Inside the light
+       content area it must re-theme to a soft grey, otherwise inset panels
+       (lane grid, history, city search…) render as dark-navy boxes on white —
+       a jarring edge. This scoped override only touches content, not chrome. */
+    --color-surface-1:        #e7eaef;
     --color-surface-2:        #eef0f3;
     --color-surface-3:        #e4e7ec;
     --color-border-subtle:    #e3e6ea;
