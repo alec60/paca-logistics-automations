@@ -54,10 +54,11 @@ export function SettingsPage() {
       try {
         const ct = await setApiKeyFromPlain(trimmed);
         setApiKeyEncrypted(ct);
-      } catch (err) {
+      } catch {
         setSavedAt(null);
         // Should not happen — the app auto-applies the embedded key on launch.
-        console.error(err);
+        // Log a generic message; the error object can carry lock-state details.
+        console.error("Failed to save API key.");
       }
     }
     setMonthlyBudgetUsd(draftBudget);

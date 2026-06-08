@@ -54,7 +54,10 @@ export function createServer() {
 
   app.use(
     (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      console.error("[sidecar]", err);
+      // Log only the message — never the full error object, which can carry
+      // request context (the /api/auth/register + /api/claude/test bodies
+      // include the plaintext API key).
+      console.error("[sidecar]", err.message);
       res.status(500).json({ error: err.message || "Internal error" });
     },
   );
