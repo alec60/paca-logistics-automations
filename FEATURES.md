@@ -117,9 +117,9 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 
 - **Type:** ui
 - **Added:** 2026-05-26
-- **Status:** shipped (revised 2026-05-27)
-- **Description:** Stylized SVG map of Canada used in the leads ParamView. All 13 provinces + territories drawn as cubic-Bezier polygons positioned roughly geographically (YT/NT/NU territories band on top, BC tall on the west, prairies as a row, ON/QC large in the middle, NL detached on the east, NB/NS/PE clustered as Maritimes). On selection, the abbreviation is replaced inline by an NSEW sector cluster + center deselect.
-- **Files touched:** `src/components/CanadaMap.tsx`
+- **Status:** shipped (rebuilt 2026-06-08)
+- **Description:** Accurate SVG map of Canada in the leads/shippers ParamView. **Rebuilt 2026-06-08** with real provincial + territorial boundaries from `@svg-maps/canada` (replacing the earlier hand-drawn cubic-Bezier blobs), tinted with the brand orange via `.map-prov` so it stays legible on BOTH the dark and light themes. Province centroids are measured at runtime with `getBBox` to place labels + the picker. Selecting a province reveals an **animated NSEW compass** at its centroid — four cardinal sector buttons + a center deselect, with a staggered scale-in entrance (`compass-pop`, ≤120 ms) — replacing the old cramped inline cluster. Paths and compass segments are keyboard-navigable (role/tabindex/aria + Enter/Space).
+- **Files touched:** `src/components/CanadaMap.tsx`, `src/index.css` (`.map-prov`, `@keyframes compass-pop`), `package.json` (`@svg-maps/canada`)
 
 ### region-quick-picker
 

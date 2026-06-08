@@ -89,7 +89,7 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
       {/* Dropdown — light surface to match the reference dashboard */}
       {filtered.length > 0 && (
         <div className="max-h-56 overflow-y-auto rounded-lg bg-input-bg">
-          <ul role="listbox" aria-label="City results" className="divide-y divide-black/5">
+          <ul role="listbox" aria-label="City results" className="divide-y divide-border-subtle">
             {filtered.map((city) => {
               const isSelected = selectedCities.includes(city);
               const isPinned = pinned.includes(city);

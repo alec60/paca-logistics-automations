@@ -44,6 +44,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.4
         version: 1.2.8(@types/react-dom@18.3.7(@types/react@18.3.29))(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@svg-maps/canada':
+        specifier: ^2.0.0
+        version: 2.0.0
       '@tauri-apps/api':
         specifier: ^2.0.0
         version: 2.11.0
@@ -1721,6 +1724,9 @@ packages:
     resolution: {integrity: sha512-QVTUovf40zgTqlFVrKA1uXMVvU2QWEFWfAH8Wdc48IxLvrJMQVMBRjuQyUpzZCDkakImib9eVazbWlC6ksWtJw==}
     cpu: [x64]
     os: [win32]
+
+  '@svg-maps/canada@2.0.0':
+    resolution: {integrity: sha512-5sBofr4voCPDaS8kqr/K3XzFGBKQ7nCWPt2M/+H1C8zvuzWBjMe4n6/HFklh7uhDm6q6Hja4mIU9tBmXhVzyow==}
 
   '@tailwindcss/node@4.3.0':
     resolution: {integrity: sha512-aFb4gUhFOgdh9AXo4IzBEOzBkkAxm9VigwDJnMIYv3lcfXCJVesNfbEaBl4BNgVRyid92AmdviqwBUBRKSeY3g==}
@@ -5471,6 +5477,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.60.4':
     optional: true
+
+  '@svg-maps/canada@2.0.0': {}
 
   '@tailwindcss/node@4.3.0':
     dependencies:

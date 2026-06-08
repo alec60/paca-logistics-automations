@@ -8,7 +8,10 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border border-black/[0.04] bg-menu-bg text-input-text shadow-soft",
+        "rounded-lg border border-border-subtle bg-menu-bg text-input-text shadow-soft",
+        // Restrained hover-lift: 2px rise + one elevation step. Inherits the
+        // global 120ms transition-duration; ease-out keeps the settle natural.
+        "transition-[box-shadow,transform] duration-[120ms] ease-out hover:-translate-y-0.5 hover:shadow-soft-lg",
         className,
       )}
       {...props}

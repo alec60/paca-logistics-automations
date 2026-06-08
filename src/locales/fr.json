@@ -41,6 +41,14 @@
     "cancel": "Annuler",
     "confirm": "Confirmer",
     "loading": "Chargement…",
+    "searching": "Recherche en cours…",
     "error": "Une erreur est survenue."
+  },
+  "result": {
+    "blacklisted_hidden": "{{count}} masqués par la liste noire · voir",
+    "actions": {
+      "copy_table": "Copier",
+      "copy_table_hint": "Se colle dans Excel/Sheets en colonnes"
+    }
   }
 }

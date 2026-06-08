@@ -139,16 +139,19 @@
 
     --color-text:             #1b1f27;
     --color-text-muted:       #586074;
-    --color-text-dim:         #8a91a1;
+    --color-text-dim:         #6e7682;
 
     --color-menu-bg:          #ffffff;
     --color-menu-bg-strong:   #f1f2f5;
     --color-input-bg:         #eef0f3;
     --color-input-bg-hover:   #e4e7ec;
     --color-input-text:       #1b1e26;
-    --color-input-placeholder:#8990a0;
+    --color-input-placeholder:#5d6573;
 
     --color-accent-bg:        rgba(250, 111, 58, 0.12);
+    /* A darker, more opaque ring so the focus indicator stays visible on the
+       light input surfaces (the dark-theme 40%-orange ring washes out). */
+    --color-accent-ring:      rgba(214, 78, 26, 0.55);
   }
 }
 
@@ -170,4 +173,50 @@
   .shadow-glow {
     box-shadow: 0 6px 18px -6px rgba(250, 111, 58, 0.35);
   }
+}
+
+/* One elevation step above shadow-soft — used for the card hover-lift. Defined
+   via @utility (not @layer) so Tailwind registers it as variant-aware and
+   `hover:shadow-soft-lg` actually compiles. Same theme-neutral rgba-black
+   layering, slightly deeper + wider so a 2px translate reads as "raised"
+   without becoming a flashy drop shadow. */
+@utility shadow-soft-lg {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.20),
+    0 18px 40px -14px rgba(0, 0, 0, 0.50);
+}
+
+/* ---- Canada map ---------------------------------------------------------- */
+@layer components {
+  /* Provinces use the brand orange as their base tint, so the map stays
+     legible on BOTH the dark canvas and the light one. The accent outline
+     gives the recognizable Canada silhouette. */
+  .map-prov {
+    fill: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    stroke: color-mix(in srgb, var(--color-accent) 55%, transparent);
+    transition: fill 120ms ease, stroke 120ms ease;
+  }
+  .map-prov:hover {
+    fill: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    stroke: var(--color-accent);
+  }
+  .map-prov--selected,
+  .map-prov--selected:hover {
+    fill: var(--color-accent);
+    stroke: var(--color-accent);
+  }
+}
+
+/* Compass (NSEW sector picker) entrance — each segment pops from its center. */
+@keyframes compass-pop {
+  from { opacity: 0; transform: scale(0.35); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.compass-seg {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: compass-pop 120ms cubic-bezier(0.34, 1.42, 0.64, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .compass-seg { animation: none; }
 }

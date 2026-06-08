@@ -90,8 +90,7 @@ export async function handle(
     // Map Anthropic 429s to a domain-specific error so the UI can render
     // a clean retry banner instead of the raw rate-limit JSON.
     if (err instanceof SidecarError && err.status === 429) {
-      const m = /(\d+)\s*input tokens/.exec(err.message) ?? null;
-      const retryAfter = m ? 60 : 60;
+      const retryAfter = 60;
       throw new RateLimitError(
         opts.locale === "fr"
           ? `Limite de débit Anthropic atteinte (Niveau 1 : 30 000 jetons d'entrée/min). Réessayez dans ~${retryAfter} s, ou réduisez le nombre de pistes demandées.`

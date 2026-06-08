@@ -41,6 +41,14 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "loading": "Loading…",
+    "searching": "Searching the web…",
     "error": "Something went wrong."
+  },
+  "result": {
+    "blacklisted_hidden": "{{count}} hidden by blacklist · view",
+    "actions": {
+      "copy_table": "Copy",
+      "copy_table_hint": "Pastes into Excel/Sheets as columns"
+    }
   }
 }

@@ -10,6 +10,7 @@ import { blacklistApi, budgetApi } from "../core/context";
 import { getDb } from "../core/db";
 import type { SkillContext, SkillManifest } from "../core/types";
 import { BudgetError, RateLimitError } from "../core/types";
+import { ResultSkeleton } from "../components/Skeleton";
 
 type AnyManifest = SkillManifest<unknown, unknown>;
 
@@ -65,7 +66,13 @@ export function SkillRunner() {
   }
 
   if (loading) {
-    return <div className="p-8 text-text-muted">{t("common.loading")}</div>;
+    return (
+      <ResultSkeleton
+        label={t("common.searching", {
+          defaultValue: locale === "fr" ? "Recherche en cours…" : "Searching the web…",
+        })}
+      />
+    );
   }
 
   if (error) {

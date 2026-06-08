@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-bg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-bg transition-[color,background-color,box-shadow,transform] duration-[120ms] ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -14,7 +14,7 @@ const buttonVariants = cva(
         secondary: "bg-input-bg text-input-text hover:bg-input-bg-hover",
         // Outline lives inside light cards — hairline border + dark text.
         outline:
-          "border border-black/10 bg-input-bg text-input-text hover:bg-input-bg-hover",
+          "border border-border-subtle bg-input-bg text-input-text hover:bg-input-bg-hover",
         ghost: "text-input-placeholder hover:bg-menu-bg-strong hover:text-input-text",
         destructive: "bg-danger text-white hover:opacity-90",
         link: "text-accent underline-offset-4 hover:underline rounded-md",

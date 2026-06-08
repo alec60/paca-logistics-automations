@@ -34,7 +34,10 @@ export function ResultTable<T>({ columns, rows, emptyState }: ResultTableProps<T
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} className="border-t border-border-subtle hover:bg-surface-2">
+            <tr
+              key={(row as { company?: string }).company ?? i}
+              className="border-t border-border-subtle hover:bg-surface-2"
+            >
               {columns.map((c) => (
                 <td key={c.key} className={cn("px-3 py-2 align-top", c.className)}>
                   {c.cell(row)}

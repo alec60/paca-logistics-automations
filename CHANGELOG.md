@@ -7,9 +7,18 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **shippers** automation ("Recherche d'expéditeurs" / "Shipper lead finder"): finds Canadian businesses likely to need freight hauled — the brokerage's potential customers — with public contact info and a buying-signal rationale per prospect. Mirrors the `leads` block and deliberately shares the freight-equipment + lane vocabulary so found shippers line up with found carriers for matching.
 - **Light / Dark / System** theme switch: a full light theme for the content area (OS-preference-aware "System"), toggleable from the header or Settings → Theme. The dark-navy chrome stays fixed (brand-logo constraint).
+- **Accurate Canada map**: the province picker now renders real provincial + territorial geography (`@svg-maps/canada`) tinted with the brand orange (legible in both themes), replacing the schematic blobs. Selecting a province reveals an animated NSEW compass (sector picker) at its centroid.
+- **Loading skeletons**: a result-shaped shimmer placeholder (`Skeleton` / `ResultSkeleton`) replaces the bare "loading…" text while a search runs.
 
 ### Changed
 - UI design-system refresh (palette v3): de-blued the neutral palette to clean greys, replaced the coral→yellow gradient + orange glow with one solid orange accent (`#fa6f3a`), moderated the fully-pill inputs/buttons to crisp 14 px radii (pill kept for chips), added hairline borders + refined elevation. Token-driven in `src/index.css @theme`; layout unchanged.
+- Micro-interactions: subtle card hover-lift, button press feedback (`active:scale`), and smoother focus-visible rings — all ≤120 ms.
+
+### Fixed
+- Light theme borders: card / input / outline-button / dropdown-divider now use the themed `border-border-subtle` (visible light-grey) instead of near-invisible hardcoded `black/4–10%`.
+- Accessibility (light theme): input-placeholder and text-dim bumped toward WCAG AA contrast; darker, more-opaque focus ring on light surfaces; Canada-map paths **and** the NSEW compass are now keyboard-navigable with aria labels.
+- leads results: the Company column header used the `settings.title` key (rendered "Settings"/"Paramètres") — now a proper label; table rows use a stable key (was array index, breaking reconciliation when blacklisting); removed a dead `m ? 60 : 60` ternary in the rate-limit handler.
+- i18n: added the previously-missing `result.*` keys (copy/blacklisted-hidden) and `common.searching` to both locales.
 
 ## [0.1.0] — 2026-05-26
 

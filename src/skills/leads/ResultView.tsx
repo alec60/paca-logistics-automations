@@ -54,7 +54,7 @@ function toTsv(rows: Carrier[]): string {
 }
 
 export function ResultView({ result, onNewSearch }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [carriers, setCarriers] = useState(result.carriers);
   const [hiddenShown, setHiddenShown] = useState(false);
 
@@ -84,7 +84,12 @@ export function ResultView({ result, onNewSearch }: Props) {
   }
 
   const columns: Column<Carrier>[] = [
-    { key: "company", header: t("settings.title"), cell: (r) => <span className="font-medium">{r.company}</span>, className: "w-[20%]" },
+    {
+      key: "company",
+      header: i18n.language.startsWith("fr") ? "Entreprise" : "Company",
+      cell: (r) => <span className="font-medium">{r.company}</span>,
+      className: "w-[20%]",
+    },
     {
       key: "location",
       header: "Location",
