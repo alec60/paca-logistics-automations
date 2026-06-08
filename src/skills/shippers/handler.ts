@@ -39,8 +39,22 @@ function extractJson(raw: string): unknown {
   return JSON.parse(body.trim());
 }
 
-function hasContact(s: Shipper): boolean {
-  return Boolean(s.phone?.trim() || s.email?.trim());
+// Rank by info richness so the most complete prospects — especially those with
+// a public phone/email — sort to the top. No hard contact filter: every match
+// is kept and ranking surfaces the best ones first.
+function shipperRichness(s: Shipper): number {
+  let n = 0;
+  if (s.phone?.trim()) n += 4;
+  if (s.email?.trim()) n += 4;
+  if (s.contact_name) n += 2;
+  if (s.website) n += 2;
+  if (s.why_prospect) n += 1;
+  if (s.freight_profile) n += 1;
+  if (s.est_volume) n += 1;
+  if (s.lanes) n += 1;
+  if (s.industry) n += 1;
+  if (s.city) n += 1;
+  return n;
 }
 
 export async function handle(
@@ -91,10 +105,9 @@ export async function handle(
   // `company` field, shared with the carrier finder.
   const allowed = (await blacklistApi.filterCarriers(parsed.shippers)) as Shipper[];
   const blacklistedCount = parsed.shippers.length - allowed.length;
-  // Require a phone or email; only fall back to contactless prospects when NONE
-  // of the matches have any contact info (tight filters, nothing else fits).
-  const withContact = allowed.filter(hasContact);
-  const finalShippers = withContact.length > 0 ? withContact : allowed;
+  // Keep every match (no contact requirement); rank so contact-bearing,
+  // info-rich prospects lead and the model-returned count is preserved.
+  const finalShippers = [...allowed].sort((a, b) => shipperRichness(b) - shipperRichness(a));
 
   // 5. Compute real cost from usage and log it.
   const webSearchCalls = response.message.usage.server_tool_use?.web_search_requests ?? 0;

@@ -16,5 +16,9 @@ export function makeClient(apiKey: string): Anthropic {
 export const WEB_SEARCH_TOOL = {
   type: "web_search_20250305" as const,
   name: "web_search" as const,
-  max_uses: 3,
+  // Each search round injects ~5–10k tokens of page content back into the
+  // prompt, so this is the dominant driver of per-call input tokens. 2 keeps a
+  // typical call near ~20k input (under the Tier-1 30k/min cap) while still
+  // surfacing plenty of candidates; raise to 3 for broader coverage.
+  max_uses: 2,
 };

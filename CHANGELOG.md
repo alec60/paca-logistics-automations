@@ -13,6 +13,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - UI design-system refresh (palette v3): de-blued the neutral palette to clean greys, replaced the coral→yellow gradient + orange glow with one solid orange accent (`#fa6f3a`), moderated the fully-pill inputs/buttons to crisp 14 px radii (pill kept for chips), added hairline borders + refined elevation. Token-driven in `src/index.css @theme`; layout unchanged.
 - Micro-interactions: subtle card hover-lift, button press feedback (`active:scale`), and smoother focus-visible rings — all ≤120 ms.
+- **Palette v4** (professional rework): dark mode now uses **dark elevated cards with light text** (a standard pro dark theme) instead of light cards on a dark canvas; light mode keeps clean white cards with a **deeper** orange accent (`#d95e22`) for stronger contrast on white; refined neutral ramps + a warm-orange accent (`#ee6c2c`) across both. Token-driven.
+- Canada map: removed the province-code labels (they cluttered the map) — province names remain on hover; identification via the region pills + city search.
+- Automations: lowered web_search `max_uses` 3 → 2 to cut per-call input tokens (search-result injection is the main driver of the ~30k/call). Raise it back in `server/lib/anthropic.ts` for broader coverage.
+- Automations (lead count): leads & shippers now return close to the full requested count — dropped the hard "must have a phone/email" filter (it was returning ~2 of 10) in favour of ranking by info richness (contact-bearing, most-complete entries first) and prompting the model to fill the remainder without contact rather than returning fewer.
 
 ### Fixed
 - Light theme borders: card / input / outline-button / dropdown-divider now use the themed `border-border-subtle` (visible light-grey) instead of near-invisible hardcoded `black/4–10%`.

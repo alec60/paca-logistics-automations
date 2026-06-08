@@ -117,22 +117,10 @@ export function CanadaMap({
               />
             );
           }
-          // Skip labels on tiny islands (e.g. PEI) to avoid clutter — the
-          // hover title still names them.
-          if (c.w < 20 || c.h < 15) return null;
-          return (
-            <text
-              key={loc.id}
-              x={c.cx}
-              y={c.cy}
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="pointer-events-none select-none fill-[color:var(--color-text)] font-mono font-semibold"
-              style={{ fontSize: 26 }}
-            >
-              {code}
-            </text>
-          );
+          // Labels removed — they cluttered the map. Province names still
+          // surface on hover via each path's <title>, and the region pills +
+          // city search cover identification.
+          return null;
         })}
       </svg>
     </div>

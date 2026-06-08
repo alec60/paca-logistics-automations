@@ -50,8 +50,19 @@ function fleetExceedsCap(fleetStr: string | undefined, cap: number): boolean {
   return Math.max(...nums) > cap;
 }
 
-function hasContact(c: Carrier): boolean {
-  return Boolean(c.phone?.trim() || c.email?.trim());
+// Rank by info richness so the most complete entries — especially those with a
+// public phone/email — sort to the top. No hard contact filter: every match is
+// kept and ranking surfaces the best ones first.
+function carrierRichness(c: Carrier): number {
+  let s = 0;
+  if (c.phone?.trim()) s += 4;
+  if (c.email?.trim()) s += 4;
+  if (c.website) s += 2;
+  if (c.city) s += 1;
+  if (c.lanes) s += 1;
+  if (c.fleet_size) s += 1;
+  if (c.equipment.length > 0) s += 1;
+  return s;
 }
 
 function clampFleetCap(value: number): number {
@@ -109,10 +120,9 @@ export async function handle(
   const allowed = (await blacklistApi.filterCarriers(parsed.carriers)) as Carrier[];
   const blacklistedCount = parsed.carriers.length - allowed.length;
   const withinCap = allowed.filter((c) => !fleetExceedsCap(c.fleet_size, fleetCap));
-  // Require a phone or email; only fall back to contactless carriers when NONE
-  // of the matches have any contact info (tight filters, nothing else fits).
-  const withContact = withinCap.filter(hasContact);
-  const finalCarriers = withContact.length > 0 ? withContact : withinCap;
+  // Keep every match (no contact requirement); rank so contact-bearing,
+  // info-rich carriers lead and the model-returned count is preserved.
+  const finalCarriers = [...withinCap].sort((a, b) => carrierRichness(b) - carrierRichness(a));
 
   // 5. Compute real cost from usage and log it.
   const webSearchCalls =
