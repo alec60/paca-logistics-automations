@@ -1,0 +1,29 @@
+import { test, expect } from "@playwright/test";
+
+// Full shippers flow requires the Tauri sidecar + mocked Anthropic responses.
+// In the Vite-preview default config we test the ParamView render path.
+test.describe("shippers ParamView", () => {
+  test("renders all input groups when a key is set", async ({ page }) => {
+    await page.addInitScript(() => {
+      const state = {
+        state: {
+          apiKey: "sk-ant-PLACEHOLDER",
+          locale: "en",
+          theme: "system",
+          monthlyBudgetUsd: 20,
+        },
+        version: 0,
+      };
+      localStorage.setItem("transport-paca-settings", JSON.stringify(state));
+    });
+    await page.goto("/skills/shippers");
+    await expect(page.getByText("Shipper lead finder")).toBeVisible();
+    await expect(page.getByText("Industries")).toBeVisible();
+    await expect(page.getByText("Freight equipment (optional)")).toBeVisible();
+    await expect(page.getByText("Shipping volume")).toBeVisible();
+    await expect(page.getByText("Number of prospects")).toBeVisible();
+    await expect(page.getByText("Provinces & territories")).toBeVisible();
+    await expect(page.getByText("Cities")).toBeVisible();
+    await expect(page.getByText("Typical lanes")).toBeVisible();
+  });
+});

@@ -1,0 +1,28 @@
+{
+  "name": "Recherche d'expéditeurs",
+  "description": "Trouvez des entreprises canadiennes qui ont du fret à transporter.",
+  "params": {
+    "industries": "Secteurs d'activité",
+    "freight_equipment": "Besoins en équipement",
+    "volume": "Volume d'expédition",
+    "count": "Nombre de prospects",
+    "provinces": "Provinces et territoires",
+    "sectors": "Secteurs régionaux",
+    "cities": "Villes",
+    "lanes": "Trajets typiques"
+  },
+  "result": {
+    "summary": "Résumé",
+    "shippers": "Expéditeurs",
+    "sources": "Sources",
+    "blacklisted_hidden": "{{count}} masqués par la liste noire · voir",
+    "actions": {
+      "copy_contact": "Copier le contact",
+      "save_file": "Enregistrer sous",
+      "blacklist": "Mettre sur liste noire",
+      "copy_table": "Copier",
+      "copy_table_hint": "Se colle dans Excel/Sheets en colonnes",
+      "new_search": "Nouvelle recherche"
+    }
+  }
+}
