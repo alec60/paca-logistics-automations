@@ -16,14 +16,10 @@ export const TRUCK_TYPES = [
 ] as const;
 export type TruckType = (typeof TRUCK_TYPES)[number];
 
-export const FLEET_SIZES = [
-  { value: "small", labelEn: "Small (1–10)", labelFr: "Petite (1–10)" },
-  { value: "medium", labelEn: "Medium (11–50)", labelFr: "Moyenne (11–50)" },
-  { value: "large", labelEn: "Large (51–200)", labelFr: "Grande (51–200)" },
-  { value: "xl", labelEn: "XL (200+)", labelFr: "XL (200+)" },
-  { value: "any", labelEn: "Any", labelFr: "Toutes" },
-] as const;
-export type FleetSize = (typeof FLEET_SIZES)[number]["value"];
+// Maximum fleet size (number of trucks). The UI slider, the Zod schema, the
+// prompt, and the handler all clamp/enforce this range — a redundant hard cap
+// the model is not allowed to exceed.
+export const FLEET_CAP = { min: 5, max: 200, default: 50 } as const;
 
 export const LEAD_COUNTS = [5, 10, 15, 20, 30, 50] as const;
 export type LeadCount = (typeof LEAD_COUNTS)[number];

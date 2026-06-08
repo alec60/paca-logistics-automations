@@ -1,5 +1,6 @@
 import type { LeadsParams, LeadsResult, Carrier } from "./schemas";
 import { LeadsResult as LeadsResultSchema } from "./schemas";
+import { FLEET_CAP } from "./data";
 import { buildMessagesRequest } from "./prompt";
 import { callSidecar, SidecarError } from "../../core/claude-client";
 import { blacklistApi, budgetApi } from "../../core/context";
@@ -39,6 +40,26 @@ function extractJson(raw: string): unknown {
   return JSON.parse(body.trim());
 }
 
+/** Redundant hard cap: drop carriers whose reported fleet clearly exceeds the
+ *  cap. fleet_size is free-form ("~25 trucks", "51-200"); take the largest
+ *  number found. Unknown/unparseable sizes are kept (can't disprove). */
+function fleetExceedsCap(fleetStr: string | undefined, cap: number): boolean {
+  if (!fleetStr) return false;
+  const nums = (fleetStr.match(/\d+/g) ?? []).map(Number).filter((n) => Number.isFinite(n));
+  if (nums.length === 0) return false;
+  return Math.max(...nums) > cap;
+}
+
+function hasContact(c: Carrier): boolean {
+  return Boolean(c.phone?.trim() || c.email?.trim());
+}
+
+function clampFleetCap(value: number): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return FLEET_CAP.default;
+  return Math.min(Math.max(Math.round(n), FLEET_CAP.min), FLEET_CAP.max);
+}
+
 export async function handle(
   params: LeadsParams,
   opts: { locale: "en" | "fr" },
@@ -57,7 +78,8 @@ export async function handle(
   // 2. Call sidecar → Anthropic with web_search. The session token (already
   // registered by the runtime-secrets layer) authenticates this call; the
   // apiKey itself is not in the body.
-  const request = buildMessagesRequest(params, opts.locale);
+  const fleetCap = clampFleetCap(params.max_fleet_size);
+  const request = buildMessagesRequest({ ...params, max_fleet_size: fleetCap }, opts.locale);
   let response: ProxyResponse;
   try {
     response = await callSidecar<ProxyResponse>("/api/claude/messages", {
@@ -84,9 +106,14 @@ export async function handle(
   const text = extractText(response.message);
   const parsed = LeadsResultSchema.parse(extractJson(text));
 
-  // 4. Filter out blacklisted carriers.
+  // 4. Filter: blacklist → redundant fleet hard cap → require contact info.
   const allowed = (await blacklistApi.filterCarriers(parsed.carriers)) as Carrier[];
   const blacklistedCount = parsed.carriers.length - allowed.length;
+  const withinCap = allowed.filter((c) => !fleetExceedsCap(c.fleet_size, fleetCap));
+  // Require a phone or email; only fall back to contactless carriers when NONE
+  // of the matches have any contact info (tight filters, nothing else fits).
+  const withContact = withinCap.filter(hasContact);
+  const finalCarriers = withContact.length > 0 ? withContact : withinCap;
 
   // 5. Compute real cost from usage and log it.
   const webSearchCalls =
@@ -99,12 +126,12 @@ export async function handle(
   await budgetApi.logSpend(realCost, "leads", {
     params,
     webSearchCalls,
-    leadsReturned: allowed.length,
+    leadsReturned: finalCarriers.length,
   });
 
   const finalResult: LeadsResult = {
     ...parsed,
-    carriers: allowed,
+    carriers: finalCarriers,
     cost_estimate_usd: realCost,
     blacklisted_count: blacklistedCount,
   };

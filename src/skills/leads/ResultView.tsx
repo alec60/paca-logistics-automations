@@ -14,19 +14,41 @@ interface Props {
   params: LeadsParams;
 }
 
+// Column order shared by the file export and the clipboard copy.
+const EXPORT_COLUMNS: { header: string; key: keyof Carrier }[] = [
+  { header: "Company", key: "company" },
+  { header: "Province", key: "province" },
+  { header: "City", key: "city" },
+  { header: "Fleet size", key: "fleet_size" },
+  { header: "Equipment", key: "equipment" },
+  { header: "Phone", key: "phone" },
+  { header: "Email", key: "email" },
+  { header: "Website", key: "website" },
+  { header: "Lanes", key: "lanes" },
+];
+
+function cellValue(r: Carrier, key: keyof Carrier): string {
+  const v = r[key];
+  const s = Array.isArray(v) ? v.join(", ") : (v ?? "");
+  return String(s).replace(/[\t\r\n]+/g, " ").trim();
+}
+
 function toCsv(rows: Carrier[]): string {
-  const headers = ["company", "province", "city", "fleet_size", "equipment", "phone", "email", "website", "lanes"];
-  const lines = [headers.join(",")];
+  const lines = [EXPORT_COLUMNS.map((c) => c.header).join(",")];
   for (const r of rows) {
     lines.push(
-      headers
-        .map((h) => {
-          const v = (r as unknown as Record<string, unknown>)[h];
-          const s = Array.isArray(v) ? v.join("; ") : (v ?? "");
-          return `"${String(s).replace(/"/g, '""')}"`;
-        })
-        .join(","),
+      EXPORT_COLUMNS.map((c) => `"${cellValue(r, c.key).replace(/"/g, '""')}"`).join(","),
     );
+  }
+  return lines.join("\n");
+}
+
+// Tab-separated — pastes straight into Excel / Google Sheets as clean columns
+// (pasting comma-CSV dumps everything into one column, which is unreadable).
+function toTsv(rows: Carrier[]): string {
+  const lines = [EXPORT_COLUMNS.map((c) => c.header).join("\t")];
+  for (const r of rows) {
+    lines.push(EXPORT_COLUMNS.map((c) => cellValue(r, c.key)).join("\t"));
   }
   return lines.join("\n");
 }
@@ -46,8 +68,9 @@ export function ResultView({ result, onNewSearch }: Props) {
     await navigator.clipboard.writeText(lines);
   }
 
-  async function copyCsv() {
-    await navigator.clipboard.writeText(toCsv(carriers));
+  async function copyTable() {
+    // Tab-separated so it pastes into Excel/Sheets as proper columns.
+    await navigator.clipboard.writeText(toTsv(carriers));
   }
 
   async function saveCsv() {
@@ -132,11 +155,19 @@ export function ResultView({ result, onNewSearch }: Props) {
           <p className="mt-1 text-sm text-text-muted">{result.query_summary}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={copyCsv}>
-            <Copy className="h-3.5 w-3.5" /> CSV
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={copyTable}
+            title={t("result.actions.copy_table_hint", {
+              defaultValue: "Pastes into Excel/Sheets as columns",
+            })}
+          >
+            <Copy className="h-3.5 w-3.5" />{" "}
+            {t("result.actions.copy_table", { defaultValue: "Copy" })}
           </Button>
           <Button size="sm" variant="outline" onClick={saveCsv}>
-            <Save className="h-3.5 w-3.5" /> {t("settings.save")}
+            <Save className="h-3.5 w-3.5" /> .csv
           </Button>
           <Button size="sm" variant="outline" onClick={onNewSearch}>
             <RefreshCw className="h-3.5 w-3.5" /> New

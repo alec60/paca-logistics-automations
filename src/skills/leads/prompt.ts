@@ -7,6 +7,8 @@ Your job: given the user's filters, identify real Canadian trucking carriers tha
 
 RULES
 - Only use information you can verify via the web_search tool. Never invent contact data.
+- CONTACT IS MANDATORY: every carrier you return MUST include a phone number OR an email. Search hard (carrier website, contact/about page, public directories) to find at least one. Do NOT return a carrier with neither phone nor email — UNLESS the filters are so restrictive that you genuinely cannot find enough matches that have contact info, in which case you may include the closest options without it as a last resort.
+- HARD CAP on fleet size: never return a carrier whose fleet exceeds the maximum number of trucks stated in the user message. This is a strict ceiling, not a preference.
 - Prefer carriers with public websites, MC/DOT numbers, or government-registered fleets.
 - Paraphrase carrier descriptions; do not copy marketing prose verbatim.
 - If a regional sector is supplied (e.g. QC-N), treat it as a soft preference, not a reject filter.
@@ -41,7 +43,7 @@ export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
   const userPrompt = [
     `Find ${params.count} Canadian trucking carriers matching these filters:`,
     `- Truck types: ${params.truck_types.join(", ")}`,
-    `- Fleet size: ${params.fleet_size}`,
+    `- Maximum fleet size: ${params.max_fleet_size} trucks (HARD CAP — never exceed this).`,
     params.provinces.length ? `- Provinces: ${params.provinces.join(", ")}` : "",
     params.sectors.length ? `- Regional sectors (soft): ${params.sectors.join(", ")}` : "",
     params.cities.length ? `- Cities of interest: ${params.cities.join(", ")}` : "",

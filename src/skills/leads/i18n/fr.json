@@ -21,6 +21,8 @@
       "blacklist": "Mettre sur liste noire",
       "send_crm": "Envoyer au CRM",
       "copy_csv": "Copier CSV",
+      "copy_table": "Copier",
+      "copy_table_hint": "Se colle dans Excel/Sheets en colonnes",
       "new_search": "Nouvelle recherche",
       "more_leads": "Plus de pistes"
     }

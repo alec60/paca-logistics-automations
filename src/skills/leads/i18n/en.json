@@ -21,6 +21,8 @@
       "blacklist": "Blacklist",
       "send_crm": "Send to CRM",
       "copy_csv": "Copy CSV",
+      "copy_table": "Copy",
+      "copy_table_hint": "Pastes into Excel/Sheets as columns",
       "new_search": "New search",
       "more_leads": "More leads"
     }

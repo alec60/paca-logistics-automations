@@ -9,8 +9,8 @@ import { LanePicker } from "../../components/LanePicker";
 import { BlacklistSection } from "../../components/BlacklistSection";
 import {
   TRUCK_TYPES,
-  FLEET_SIZES,
   LEAD_COUNTS,
+  FLEET_CAP,
   type ProvinceCode,
 } from "./data";
 import type { LeadsParams } from "./schemas";
@@ -26,7 +26,9 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
   const [truckTypes, setTruckTypes] = useState<string[]>(
     defaultValues?.truck_types ?? ["Flatbed"],
   );
-  const [fleetSize, setFleetSize] = useState<string>(defaultValues?.fleet_size ?? "any");
+  const [maxFleetSize, setMaxFleetSize] = useState<number>(
+    defaultValues?.max_fleet_size ?? FLEET_CAP.default,
+  );
   const [count, setCount] = useState<number>(defaultValues?.count ?? 10);
   const [provinces, setProvinces] = useState<string[]>(defaultValues?.provinces ?? []);
   const [sectors, setSectors] = useState<string[]>(defaultValues?.sectors ?? []);
@@ -68,20 +70,15 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
   function submit() {
     onSubmit({
       truck_types: truckTypes as LeadsParams["truck_types"],
-      fleet_size: fleetSize as LeadsParams["fleet_size"],
       count,
       provinces: provinces as LeadsParams["provinces"],
       sectors,
       cities,
       lanes,
+      max_fleet_size: maxFleetSize,
       custom_instructions: customInstructions.trim() || undefined,
     });
   }
-
-  const fleetOptions = FLEET_SIZES.map((f) => ({
-    value: f.value,
-    label: locale === "fr" ? f.labelFr : f.labelEn,
-  }));
 
   return (
     <form
@@ -116,13 +113,29 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
         />
       </Field>
 
-      <Field label={locale === "fr" ? "Taille de la flotte" : "Fleet size"}>
-        <PillGroup
-          options={fleetOptions}
-          value={fleetSize}
-          onChange={(v) => setFleetSize(v as string)}
-          ariaLabel="Fleet size"
-        />
+      <Field
+        label={locale === "fr" ? "Taille de flotte maximale" : "Maximum fleet size"}
+      >
+        <div className="flex items-center gap-4">
+          <input
+            type="range"
+            min={FLEET_CAP.min}
+            max={FLEET_CAP.max}
+            step={1}
+            value={maxFleetSize}
+            onChange={(e) => setMaxFleetSize(Number(e.target.value))}
+            aria-label="Maximum fleet size"
+            className="h-2 flex-1 cursor-pointer appearance-none rounded-full bg-input-bg accent-accent"
+          />
+          <span className="w-28 shrink-0 text-right font-mono text-sm text-text">
+            ≤ {maxFleetSize} {locale === "fr" ? "camions" : "trucks"}
+          </span>
+        </div>
+        <span className="text-[10px] text-text-dim">
+          {locale === "fr"
+            ? "Plafond strict (5–200) — aucun transporteur plus grand ne sera retourné."
+            : "Hard cap (5–200) — no larger carrier will be returned."}
+        </span>
       </Field>
 
       <Field label={locale === "fr" ? "Nombre de pistes" : "Number of leads"}>

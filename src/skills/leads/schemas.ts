@@ -1,13 +1,18 @@
 import { z } from "zod";
-import { PROVINCES, TRUCK_TYPES, FLEET_SIZES, LEAD_COUNTS } from "./data";
+import { PROVINCES, TRUCK_TYPES, LEAD_COUNTS, FLEET_CAP } from "./data";
 
 const provinceCodes = PROVINCES.map((p) => p.code) as unknown as readonly [string, ...string[]];
-const fleetValues = FLEET_SIZES.map((f) => f.value) as unknown as readonly [string, ...string[]];
 const leadCounts = LEAD_COUNTS as unknown as readonly [number, ...number[]];
 
 export const LeadsParams = z.object({
   truck_types: z.array(z.enum(TRUCK_TYPES)).min(1, "Pick at least one truck type"),
-  fleet_size: z.enum(fleetValues),
+  // Hard cap on carrier fleet size (trucks). Bounded to [5, 200].
+  max_fleet_size: z
+    .number()
+    .int()
+    .min(FLEET_CAP.min)
+    .max(FLEET_CAP.max)
+    .default(FLEET_CAP.default),
   count: z
     .number()
     .int()
