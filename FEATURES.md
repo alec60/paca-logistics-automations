@@ -272,3 +272,12 @@ Every automation and every notable UI/infra feature lives here. **Append a new e
 - **Status:** shipped (revised 2026-05-27)
 - **Description:** Reskinned to match the user's reference image. Deep dark slate background (`#161a26`), coral→orange gradient as the brand accent, much rounder corners everywhere (pill-shaped buttons + inputs, 16/22/28 px card radii). New `--gradient-accent` CSS variable powers `bg-gradient-accent` and `shadow-glow` utilities for hero affordances. Dark mode is locked (no `prefers-color-scheme` auto-switch) until a Settings toggle ships.
 - **Files touched:** `src/index.css`, `src/components/ui/{button,input,card}.tsx`
+
+### ui-modernize (palette v3)
+
+- **Type:** ui
+- **Added:** 2026-06-08
+- **Status:** shipped
+- **Description:** Design-system refresh for a cleaner, more modern feel — layout unchanged. De-blued the neutral palette to true greys (canvas `#1b1e25`; light cards `#e8eaee`, inputs `#d7dae1`), while the deep-navy nav rail + header stay (brand-logo blend). Replaced the coral→yellow gradient + orange glow with one solid confident orange accent (`#fa6f3a`, keyed to the logo) and subtle elevation. Moderated the fully-pill inputs/buttons to crisp 14 px radii — `--radius-pill` is now reserved for chips/tags. Added hairline borders on light surfaces.
+- **Files touched:** `src/index.css` (`@theme` tokens + `.shadow-soft`/`.shadow-glow`), `src/components/ui/{button,input,card}.tsx`
+- **Notes:** Token-driven, so the refresh propagates app-wide with zero layout churn. Verified live in-browser: canvas `#1b1e25`, accent button (solid `#fa6f3a`, dark text, 14 px, no glow), neutral inputs (`#d7dae1`, 14 px), chips still pill. Supersedes the visual direction of `palette-v2` / `menu-cards-light` (kept for history). Iterate accent hue / radius / card lightness freely — all live in `index.css @theme`.

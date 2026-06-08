@@ -1,54 +1,57 @@
 @import "tailwindcss";
 
 @theme {
-  /* Shell. Main background is a darker steel grey; the sidebar/header frame
-     that holds the automations is a near-black navy. Text on the shell is light. */
-  --color-bg:               #2d323b;
-  /* Matches the brand-logo.png background navy so the header banner blends
-     seamlessly into the frame (no visible logo rectangle). */
+  /* Shell. The content canvas is a calm neutral charcoal (de-blued); the nav
+     rail + header stay a deep navy that blends with the brand logo. Text on the
+     shell is near-white. */
+  --color-bg:               #1b1e25;
+  /* Nav rail + header — deep navy matched to the brand-logo.png background so
+     the banner blends seamlessly into the frame (no visible logo rectangle). */
   --color-surface-1:        #071022;
-  --color-surface-2:        #232c44;
-  --color-surface-3:        #2f3a55;
-  --color-border-subtle:    #2a3142;
-  --color-border:           #39435c;
-  --color-border-strong:    #4a5775;
+  --color-surface-2:        #262b34;
+  --color-surface-3:        #333944;
+  --color-border-subtle:    #2a2f39;
+  --color-border:           #3a414e;
+  --color-border-strong:    #4c5564;
 
-  --color-text:             #eef0f6;
-  --color-text-muted:       #9aa2b6;
-  --color-text-dim:         #6f7890;
+  --color-text:             #eef0f4;
+  --color-text-muted:       #9aa1ad;
+  --color-text-dim:         #6e7682;
 
-  /* Cards / interactive surfaces — a blueish light grey (not pure white) so the
-     cards read as light panels floating on the darker shell. Text on them is dark. */
-  --color-menu-bg:          #cdd6e4;
-  --color-menu-bg-strong:   #bcc7d9;
-  --color-input-bg:         #b3bed0;
-  --color-input-bg-hover:   #a6b2c6;
-  --color-input-text:       #1c2030;
-  --color-input-placeholder:#525c70;
+  /* Cards / interactive surfaces — clean neutral light greys (de-blued) so the
+     cards read as crisp light panels floating on the dark canvas. Inputs nest
+     one step darker. Text on them is near-black neutral. */
+  --color-menu-bg:          #e8eaee;
+  --color-menu-bg-strong:   #dadde3;
+  --color-input-bg:         #d7dae1;
+  --color-input-bg-hover:   #cacdd6;
+  --color-input-text:       #1b1e26;
+  --color-input-placeholder:#6a7180;
 
-  /* Coral-to-orange accent — pulled from the reference. */
-  --color-accent:           #ff7559;
-  --color-accent-hover:     #ff6044;
-  --color-accent-bg:        rgba(255, 117, 89, 0.14);
-  --color-accent-ring:      rgba(255, 117, 89, 0.36);
-  --color-accent-text:      #1a1f2e;
-  --color-accent-start:     #ff6b6b;
-  --color-accent-end:       #ffa94d;
+  /* One confident orange accent — keyed to the brand logo (no gradient/glow). */
+  --color-accent:           #fa6f3a;
+  --color-accent-hover:     #ef5e29;
+  --color-accent-bg:        rgba(250, 111, 58, 0.13);
+  --color-accent-ring:      rgba(250, 111, 58, 0.40);
+  --color-accent-text:      #20140a;
+  --color-accent-start:     #ff8a4c;
+  --color-accent-end:       #f5602a;
 
-  --color-success:          #4ade80;
-  --color-warning:          #fbbf24;
-  --color-danger:           #f87171;
-  --color-info:             #38bdf8;
+  --color-success:          #46d07f;
+  --color-warning:          #f5b53f;
+  --color-danger:           #f06a5e;
+  --color-info:             #4aa8e6;
 
   --font-sans:              "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
   /* Display face for headings / titles — a touch more character. */
   --font-display:           "Space Grotesk", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono:              "JetBrains Mono", ui-monospace, monospace;
 
-  --radius-sm:              10px;
-  --radius:                 16px;
-  --radius-lg:              22px;
-  --radius-xl:              28px;
+  /* Crisp modern radii — moderate, not capsule. Pill reserved for chips/tags. */
+  --radius-sm:              8px;
+  --radius:                 11px;
+  --radius-lg:              14px;
+  --radius-xl:              18px;
   --radius-pill:            999px;
 }
 
@@ -127,10 +130,10 @@
   }
   .shadow-soft {
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.03) inset,
-      0 8px 28px rgba(0, 0, 0, 0.32);
+      0 1px 2px rgba(0, 0, 0, 0.18),
+      0 12px 30px -12px rgba(0, 0, 0, 0.45);
   }
   .shadow-glow {
-    box-shadow: 0 6px 24px rgba(255, 117, 89, 0.32);
+    box-shadow: 0 6px 18px -6px rgba(250, 111, 58, 0.35);
   }
 }
