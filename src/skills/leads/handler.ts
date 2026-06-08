@@ -3,10 +3,11 @@ import { LeadsResult as LeadsResultSchema } from "./schemas";
 import { FLEET_CAP } from "./data";
 import { buildMessagesRequest } from "./prompt";
 import { callSidecar, SidecarError } from "../../core/claude-client";
+import { extractJson } from "../../core/extract-json";
 import { blacklistApi, budgetApi } from "../../core/context";
 import { getDb } from "../../core/db";
 import { useSettingsStore } from "../../core/settings-store";
-import { BudgetError, RateLimitError } from "../../core/types";
+import { BudgetError, ModelOutputError, RateLimitError } from "../../core/types";
 import { computeCostUsd, estimateLeadSearchCost } from "../../../server/lib/cost";
 
 interface ProxyResponse {
@@ -31,13 +32,6 @@ function extractText(message: ProxyResponse["message"]): string {
     .filter((b): b is { type: "text"; text: string } => "type" in b && b.type === "text")
     .map((b) => b.text)
     .join("\n");
-}
-
-function extractJson(raw: string): unknown {
-  // Tolerate ```json fences if the model ignored the no-fences instruction.
-  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const body = fenced ? fenced[1] : raw;
-  return JSON.parse(body.trim());
 }
 
 /** Redundant hard cap: drop carriers whose reported fleet clearly exceeds the
@@ -112,9 +106,24 @@ export async function handle(
     throw err;
   }
 
-  // 3. Parse the JSON the model returned.
+  // 3. Parse the JSON the model returned. With web_search the model sometimes
+  // narrates ("I need to search …") around the JSON, so extraction is tolerant;
+  // if it still can't recover a valid result, surface a clean, retryable
+  // message (the raw text goes to the console for diagnosis) instead of letting
+  // a raw SyntaxError/ZodError reach the user as "Unexpected token 'I' …".
   const text = extractText(response.message);
-  const parsed = LeadsResultSchema.parse(extractJson(text));
+  let parsed: LeadsResult;
+  try {
+    parsed = LeadsResultSchema.parse(extractJson(text)) as LeadsResult;
+  } catch (err) {
+    console.warn("[leads] could not parse model output:", err, "\n--- raw ---\n", text);
+    throw new ModelOutputError(
+      opts.locale === "fr"
+        ? "Le modèle n'a pas renvoyé de résultats exploitables (réponse incomplète ou interrompue). Réessayez — c'est généralement passager."
+        : "The model didn't return usable results (incomplete or interrupted response). Please try again — this is usually transient.",
+      text,
+    );
+  }
 
   // 4. Filter: blacklist → redundant fleet hard cap → require contact info.
   const allowed = (await blacklistApi.filterCarriers(parsed.carriers)) as Carrier[];

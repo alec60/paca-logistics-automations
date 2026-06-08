@@ -72,3 +72,15 @@ export class RateLimitError extends Error {
     this.retryAfterSeconds = retryAfterSeconds;
   }
 }
+
+/** The model's response couldn't be parsed into the expected result shape
+ *  (e.g. it returned prose instead of JSON, or the JSON was truncated). The
+ *  raw text is kept for console diagnostics; `message` stays user-friendly. */
+export class ModelOutputError extends Error {
+  raw?: string;
+  constructor(message: string, raw?: string) {
+    super(message);
+    this.name = "ModelOutputError";
+    this.raw = raw;
+  }
+}
