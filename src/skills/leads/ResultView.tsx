@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, Save, RefreshCw, Ban, ExternalLink } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -58,15 +58,15 @@ export function ResultView({ result, onNewSearch }: Props) {
   const [carriers, setCarriers] = useState(result.carriers);
   const [hiddenShown, setHiddenShown] = useState(false);
 
-  async function blacklist(c: Carrier) {
+  const blacklist = useCallback(async (c: Carrier) => {
     await blacklistApi.add(c.company);
     setCarriers((cs) => cs.filter((x) => x.company !== c.company));
-  }
+  }, []);
 
-  async function copyContact(c: Carrier) {
+  const copyContact = useCallback(async (c: Carrier) => {
     const lines = [c.company, c.phone, c.email, c.website].filter(Boolean).join("\n");
     await navigator.clipboard.writeText(lines);
-  }
+  }, []);
 
   async function copyTable() {
     // Tab-separated so it pastes into Excel/Sheets as proper columns.
@@ -83,7 +83,7 @@ export function ResultView({ result, onNewSearch }: Props) {
     URL.revokeObjectURL(url);
   }
 
-  const columns: Column<Carrier>[] = [
+  const columns = useMemo<Column<Carrier>[]>(() => [
     {
       key: "company",
       header: i18n.language.startsWith("fr") ? "Entreprise" : "Company",
@@ -148,7 +148,7 @@ export function ResultView({ result, onNewSearch }: Props) {
       ),
       className: "w-[1%] whitespace-nowrap",
     },
-  ];
+  ], [t, i18n.language, copyContact, blacklist]);
 
   const hiddenByBlacklist = result.blacklisted_count;
 

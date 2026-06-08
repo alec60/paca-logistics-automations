@@ -170,7 +170,8 @@ export function LanePicker({ selectedLanes, onToggleLane }: Props) {
         >
           <Plus className="h-3.5 w-3.5" />
           {t("leads.lane_add", {
-            defaultValue: `Add ${Math.max(0, origins.length * dests.length - origins.filter((o) => dests.includes(o)).length)} lane(s)`,
+            n: Math.max(0, origins.length * dests.length - origins.filter((o) => dests.includes(o)).length),
+            defaultValue: "Add {{n}} lane(s)",
           })}
         </button>
       </div>

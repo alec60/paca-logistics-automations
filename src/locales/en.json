@@ -50,5 +50,14 @@
       "copy_table": "Copy",
       "copy_table_hint": "Pastes into Excel/Sheets as columns"
     }
+  },
+  "leads": {
+    "pinned": "Pinned",
+    "lane_from": "From",
+    "lane_to": "To",
+    "lane_add": "Add {{n}} lane(s)",
+    "city_search_all": "Search cities…",
+    "city_search_filtered": "Search cities in {{provinces}}…",
+    "city_no_match": "No matching cities in the selected provinces."
   }
 }

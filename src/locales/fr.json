@@ -50,5 +50,14 @@
       "copy_table": "Copier",
       "copy_table_hint": "Se colle dans Excel/Sheets en colonnes"
     }
+  },
+  "leads": {
+    "pinned": "Épinglé",
+    "lane_from": "De",
+    "lane_to": "Vers",
+    "lane_add": "Ajouter {{n}} trajet(s)",
+    "city_search_all": "Rechercher des villes…",
+    "city_search_filtered": "Rechercher des villes dans {{provinces}}…",
+    "city_no_match": "Aucune ville correspondante dans les provinces sélectionnées."
   }
 }

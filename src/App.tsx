@@ -35,6 +35,7 @@ export default function App() {
   const unlock = useLockStore((s) => s.unlock);
   const apiKeyEncrypted = useSettingsStore((s) => s.apiKeyEncrypted);
   const loadFromCiphertext = useRuntimeSecrets((s) => s.loadFromCiphertext);
+  const locale = useSettingsStore((s) => s.locale);
   const resolvedTheme = useResolvedTheme();
 
   useEffect(() => {
@@ -49,6 +50,12 @@ export default function App() {
 
   return (
     <div className="flex h-full">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-text"
+      >
+        {locale === "fr" ? "Aller au contenu" : "Skip to content"}
+      </a>
       <Sidebar />
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border-subtle bg-surface-1 px-6 py-3">
@@ -62,7 +69,7 @@ export default function App() {
         </header>
         {/* data-theme scopes light/dark to the content only — the navy chrome
             (sidebar + header) stays fixed so the brand logo keeps blending. */}
-        <main data-theme={resolvedTheme} className="flex-1 overflow-auto bg-bg">
+        <main id="main-content" data-theme={resolvedTheme} className="flex-1 overflow-auto bg-bg">
           <Outlet />
         </main>
       </div>
