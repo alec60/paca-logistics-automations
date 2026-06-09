@@ -27,10 +27,14 @@ describe("LeadsParams", () => {
     ).toThrow();
   });
 
-  it("rejects a non-allowed lead count", () => {
-    expect(() =>
-      LeadsParams.parse({ truck_types: ["Flatbed"], fleet_size: "any", count: 7 }),
-    ).toThrow();
+  it("accepts any lead count within 5–100", () => {
+    expect(LeadsParams.parse({ truck_types: ["Flatbed"], count: 7 }).count).toBe(7);
+    expect(LeadsParams.parse({ truck_types: ["Flatbed"], count: 100 }).count).toBe(100);
+  });
+
+  it("rejects out-of-range lead counts", () => {
+    expect(() => LeadsParams.parse({ truck_types: ["Flatbed"], count: 4 })).toThrow();
+    expect(() => LeadsParams.parse({ truck_types: ["Flatbed"], count: 250 })).toThrow();
   });
 
   it("validates sector format PROV-X", () => {

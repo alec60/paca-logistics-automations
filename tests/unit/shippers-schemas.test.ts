@@ -29,9 +29,9 @@ describe("ShippersParams", () => {
     const p = ShippersParams.parse({
       industries: ["Food & Beverage"],
       count: 10,
-      freight_equipment: ["Reefer", "Dry Van"],
+      freight_equipment: ["Tanker", "Dry Van"],
     });
-    expect(p.freight_equipment).toEqual(["Reefer", "Dry Van"]);
+    expect(p.freight_equipment).toEqual(["Tanker", "Dry Van"]);
   });
 
   it("rejects an unknown freight-equipment value", () => {

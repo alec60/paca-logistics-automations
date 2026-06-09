@@ -23,8 +23,8 @@ describe("leads data", () => {
     expect(CITIES.length).toBeGreaterThanOrEqual(35);
   });
 
-  it("has the 10 truck types from Section 13", () => {
-    expect(TRUCK_TYPES).toHaveLength(10);
+  it("has the 4 core truck types", () => {
+    expect(TRUCK_TYPES).toEqual(["Flatbed", "B-Train", "Dry Van", "Tanker"]);
   });
 
   it("buildAllLanes returns 13×12 = 156 permutations", () => {
