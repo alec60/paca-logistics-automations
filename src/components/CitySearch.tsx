@@ -11,9 +11,17 @@ interface Props {
   selectedCities: string[];
   selectedProvinces: string[]; // narrow the dropdown
   onToggleCity: (city: string) => void;
+  // When the selected chips are shown elsewhere (e.g. SelectionSummary),
+  // suppress this component's own chip row to avoid duplication.
+  hideSelected?: boolean;
 }
 
-export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: Props) {
+export function CitySearch({
+  selectedCities,
+  selectedProvinces,
+  onToggleCity,
+  hideSelected = false,
+}: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const pinned = useSettingsStore((s) => s.pinnedCities);
@@ -44,7 +52,7 @@ export function CitySearch({ selectedCities, selectedProvinces, onToggleCity }: 
   return (
     <div className="flex flex-col gap-2">
       {/* Selected chips */}
-      {selectedCities.length > 0 && (
+      {!hideSelected && selectedCities.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {selectedCities.map((c) => (
             <span

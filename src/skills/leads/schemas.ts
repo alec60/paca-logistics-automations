@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { PROVINCES, TRUCK_TYPES, LEAD_COUNTS, FLEET_CAP } from "./data";
+import { PROVINCES, TRUCK_TYPES, FLEET_CAP, LEAD_RANGE } from "./data";
 
 const provinceCodes = PROVINCES.map((p) => p.code) as unknown as readonly [string, ...string[]];
-const leadCounts = LEAD_COUNTS as unknown as readonly [number, ...number[]];
 
 export const LeadsParams = z.object({
   truck_types: z.array(z.enum(TRUCK_TYPES)).min(1, "Pick at least one truck type"),
@@ -13,12 +12,13 @@ export const LeadsParams = z.object({
     .min(FLEET_CAP.min)
     .max(FLEET_CAP.max)
     .default(FLEET_CAP.default),
+  // Number of leads to request — continuous slider over [5, 100].
   count: z
     .number()
     .int()
-    .refine((n) => (leadCounts as readonly number[]).includes(n), {
-      message: "Invalid lead count",
-    }),
+    .min(LEAD_RANGE.min)
+    .max(LEAD_RANGE.max)
+    .default(LEAD_RANGE.default),
   provinces: z.array(z.enum(provinceCodes)).default([]),
   // PROV-X format, e.g. QC-N. Soft filter.
   sectors: z.array(z.string().regex(/^[A-Z]{2}-[NSEW]$/)).default([]),
