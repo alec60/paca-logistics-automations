@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useSettingsStore } from "../../core/settings-store";
 import { Button } from "../../components/ui/button";
 import { PillGroup } from "../../components/PillGroup";
-import { CanadaMap } from "../../components/CanadaMap";
+import { LeadsMap } from "../../components/LeadsMap";
 import { CitySearch } from "../../components/CitySearch";
 import { LanePicker } from "../../components/LanePicker";
 import { BlacklistSection } from "../../components/BlacklistSection";
@@ -44,14 +44,17 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
     });
   }
 
-  function toggleSector(sector: string) {
-    setSectors((prev) =>
-      prev.includes(sector) ? prev.filter((x) => x !== sector) : [...prev, sector],
-    );
-  }
-
   function toggleCity(c: string) {
     setCities((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
+  }
+
+  // Paint-select adds a whole region's towns at once (union, no duplicates).
+  function addCities(names: string[]) {
+    setCities((prev) => {
+      const set = new Set(prev);
+      for (const n of names) set.add(n);
+      return [...set];
+    });
   }
 
   function toggleLane(l: string) {
@@ -176,16 +179,16 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
           </Field>
         </div>
 
-        {/* RIGHT — map fills the available height. The absolute-fill wrapper
-            gives the SVG a definite height to resolve h-full against. */}
+        {/* RIGHT — interactive map fills the available height. The absolute-fill
+            wrapper gives it a definite size to measure against. */}
         <div className="relative min-h-0">
           <div className="absolute inset-0">
-            <CanadaMap
-              fill
+            <LeadsMap
               selectedProvinces={provinces}
-              sectors={sectors}
+              selectedCities={cities}
               onToggleProvince={toggleProvince}
-              onToggleSector={toggleSector}
+              onToggleCity={toggleCity}
+              onAddCities={addCities}
             />
           </div>
         </div>
