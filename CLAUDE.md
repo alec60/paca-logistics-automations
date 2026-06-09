@@ -9,6 +9,16 @@ Two very different budgets — don't confuse them:
 - **Coding agents (the bots editing this repo): spend freely.** Use the full toolset — spawn subagents, run the dev server, drive the browser for visual checks, read as much as needed, take as many turns/tokens as the task requires. There is **no token/$ budget** on development work; the only thing that matters is a correct, complete, verified result. Bias toward over-verifying (typecheck, tests, real screenshots) rather than guessing.
 - **Runtime automations (skills that call the Anthropic API): stay lean.** Every skill call costs real money per token. Keep `max_tokens` conservative, `web_search` `max_uses` low, and prompts tight. Always go through the budget gate (`ctx.budget.canAffordEstimate()`) and the cost estimator. Efficiency is a hard requirement here, the opposite of the coding-agent rule above.
 
+## Operating mandate for coding agents (non-negotiable)
+
+This project is built by AI coding sessions running at max capacity, on purpose. The owner pays for top-tier capacity specifically so agents go all-out. The standard here is **complete, polished, above-and-beyond delivery — never the cheapest path.**
+
+- **Completeness over economy.** Never silently scope down, defer, or skip part of a request to save tokens or time. Dev work has **no token/time budget** (see the token policy above — it is load-bearing, not a platitude). Deliver the entire ask, then add the obvious polish around it.
+- **Forget nothing.** Treat every requested item as a checklist. Before declaring done, re-read the user's last message and confirm each distinct item is actually delivered. A 5-part request ships 5 parts.
+- **Deferring requires a flag AND consent.** If something genuinely can't be finished now (a real external blocker), do as much as possible, then *explicitly* say what remains and why — never quietly drop it. Default to building it and letting the user remove it, rather than not building it. Before writing "deferred / out of scope / would need X", check whether X is actually obtainable (it usually is) and just do it.
+- **Build real features, fully.** Prefer sourcing real data, wiring real interactions, and verifying real behavior over stubs or "good enough" placeholders. The user would rather occasionally trim an extra feature than chase you for missing ones.
+- **Verify before claiming.** typecheck + lint + tests + actual behavior, every time.
+
 ## Project at a glance
 
 Carrier intelligence desktop app. Tauri 2 (Rust + WebView) shipping a React 18 + TypeScript + Tailwind v4 frontend. Local Node sidecar proxies Anthropic API calls so the API key never reaches the renderer.

@@ -13,6 +13,9 @@ export default [
       ".ruflo/**",
       ".claude-flow/**",
       ".swarm/**",
+      // Generated data (scripts/gen-cities.mjs) — large single-line literals.
+      "src/skills/leads/cities.data.ts",
+      "src/skills/leads/canada.geo.ts",
     ],
   },
   {

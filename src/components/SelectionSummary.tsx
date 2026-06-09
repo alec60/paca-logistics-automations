@@ -18,6 +18,10 @@ const NAME: Record<string, { en: string; fr: string }> = Object.fromEntries(
   PROVINCES.map((p) => [p.code, { en: p.nameEn, fr: p.nameFr }]),
 );
 
+// Paint can select thousands of towns; cap how many chips we draw (the full
+// selection is kept — this is display only).
+const CITY_CHIP_CAP = 200;
+
 export function SelectionSummary({
   provinces,
   sectors,
@@ -102,7 +106,7 @@ export function SelectionSummary({
             )}
             {cities.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {cities.map((c) => (
+                {cities.slice(0, CITY_CHIP_CAP).map((c) => (
                   <span
                     key={c}
                     className="inline-flex items-center gap-1 rounded-pill bg-surface-3 px-2.5 py-1 text-xs font-medium text-text"
@@ -118,6 +122,11 @@ export function SelectionSummary({
                     </button>
                   </span>
                 ))}
+                {cities.length > CITY_CHIP_CAP && (
+                  <span className="inline-flex items-center rounded-pill bg-surface-3 px-2.5 py-1 text-xs font-medium text-text-muted">
+                    +{(cities.length - CITY_CHIP_CAP).toLocaleString()} {fr ? "autres" : "more"}
+                  </span>
+                )}
               </div>
             )}
           </div>

@@ -46,7 +46,12 @@ export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
     `- Maximum fleet size: ${params.max_fleet_size} trucks (HARD CAP — never exceed this).`,
     params.provinces.length ? `- Provinces: ${params.provinces.join(", ")}` : "",
     params.sectors.length ? `- Regional sectors (soft): ${params.sectors.join(", ")}` : "",
-    params.cities.length ? `- Cities of interest: ${params.cities.join(", ")}` : "",
+    params.cities.length
+      ? `- Cities of interest (${params.cities.length}): ${params.cities.slice(0, 60).join(", ")}` +
+        (params.cities.length > 60
+          ? `, …and ${params.cities.length - 60} more across the selected area`
+          : "")
+      : "",
     params.lanes.length ? `- Preferred lanes: ${params.lanes.join(", ")}` : "",
     params.custom_instructions
       ? `\nAdditional instructions from the user (apply within the rules above): ${params.custom_instructions}`
