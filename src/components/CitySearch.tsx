@@ -1,19 +1,27 @@
-// City search with type-ahead, filtered by selected provinces. Pin to keep
-// favorites at the top across sessions. Pinned list lives in Zustand.
+// City type-ahead, filtered by selected provinces. Pin to keep favourites at
+// the top. With `byKey`, options are individual places (name + province) and
+// selections are stored as "name|province" keys so duplicate town names don't
+// collide; without it (shippers), selections are bare names.
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pin, PinOff, X, Search } from "lucide-react";
-import { CITIES, CITY_TO_PROVINCE } from "../skills/leads/data";
+import { CITIES, CITY_TO_PROVINCE, PLACES, cityKey } from "../skills/leads/data";
 import { useSettingsStore } from "../core/settings-store";
 import { cn } from "../lib/utils";
 
 interface Props {
-  selectedCities: string[];
+  selectedCities: string[]; // names, or "name|province" keys when byKey
   selectedProvinces: string[]; // narrow the dropdown
-  onToggleCity: (city: string) => void;
-  // When the selected chips are shown elsewhere (e.g. SelectionSummary),
-  // suppress this component's own chip row to avoid duplication.
+  onToggleCity: (value: string) => void;
   hideSelected?: boolean;
+  byKey?: boolean;
+}
+
+interface Opt {
+  key: string;
+  name: string;
+  province: string;
+  pop: number;
 }
 
 export function CitySearch({
@@ -21,33 +29,43 @@ export function CitySearch({
   selectedProvinces,
   onToggleCity,
   hideSelected = false,
+  byKey = false,
 }: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const pinned = useSettingsStore((s) => s.pinnedCities);
   const togglePinned = useSettingsStore((s) => s.togglePinnedCity);
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo<Opt[]>(() => {
     const q = query.trim().toLowerCase();
-    // Stay hidden until the user gives us a signal: at least 2 typed chars or
-    // any province narrowing. With 300+ cities loaded we can't dump them all.
+    // Stay hidden until the user gives a signal: 2+ typed chars or a province.
     if (q.length < 2 && selectedProvinces.length === 0) return [];
+    const provSet = new Set(selectedProvinces);
+    const out: Opt[] = [];
+    if (byKey) {
+      for (const p of PLACES) {
+        if (provSet.size && !provSet.has(p.province)) continue;
+        if (q && !p.name.toLowerCase().includes(q)) continue;
+        out.push({ key: cityKey(p.name, p.province), name: p.name, province: p.province, pop: p.pop });
+      }
+    } else {
+      for (const name of CITIES) {
+        const province = CITY_TO_PROVINCE[name];
+        if (provSet.size && !provSet.has(province)) continue;
+        if (q && !name.toLowerCase().includes(q)) continue;
+        out.push({ key: name, name, province, pop: 0 });
+      }
+    }
+    out.sort((a, b) => {
+      const ap = pinned.includes(a.name);
+      const bp = pinned.includes(b.name);
+      if (ap !== bp) return ap ? -1 : 1;
+      return a.name.localeCompare(b.name, "en") || b.pop - a.pop;
+    });
+    return out.slice(0, 60);
+  }, [query, selectedProvinces, pinned, byKey]);
 
-    const provinceSet = new Set(selectedProvinces);
-    const provinceFilter = provinceSet.size === 0
-      ? () => true
-      : (city: string) => provinceSet.has(CITY_TO_PROVINCE[city]);
-
-    return CITIES.filter(provinceFilter)
-      .filter((c) => (q ? c.toLowerCase().includes(q) : true))
-      .sort((a, b) => {
-        const ap = pinned.includes(a);
-        const bp = pinned.includes(b);
-        if (ap !== bp) return ap ? -1 : 1;
-        return a.localeCompare(b);
-      })
-      .slice(0, 60); // cap dropdown size
-  }, [query, selectedProvinces, pinned]);
+  const selectedSet = useMemo(() => new Set(selectedCities), [selectedCities]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -81,9 +99,7 @@ export function CitySearch({
           onChange={(e) => setQuery(e.target.value)}
           placeholder={
             selectedProvinces.length === 0
-              ? t("leads.city_search_all", {
-                  defaultValue: "Search cities…",
-                })
+              ? t("leads.city_search_all", { defaultValue: "Search cities…" })
               : t("leads.city_search_filtered", {
                   defaultValue: `Search cities in ${selectedProvinces.join(", ")}…`,
                   provinces: selectedProvinces.join(", "),
@@ -94,16 +110,16 @@ export function CitySearch({
         />
       </div>
 
-      {/* Dropdown — light surface to match the reference dashboard */}
+      {/* Dropdown */}
       {filtered.length > 0 && (
         <div className="max-h-56 overflow-y-auto rounded-lg bg-input-bg">
           <ul role="listbox" aria-label="City results" className="divide-y divide-border-subtle">
-            {filtered.map((city) => {
-              const isSelected = selectedCities.includes(city);
-              const isPinned = pinned.includes(city);
+            {filtered.map((o) => {
+              const isSelected = selectedSet.has(o.key);
+              const isPinned = pinned.includes(o.name);
               return (
                 <li
-                  key={city}
+                  key={o.key}
                   role="option"
                   aria-selected={isSelected}
                   className={cn(
@@ -113,29 +129,23 @@ export function CitySearch({
                 >
                   <button
                     type="button"
-                    onClick={() => onToggleCity(city)}
+                    onClick={() => onToggleCity(o.key)}
                     className="flex flex-1 items-center gap-2 text-left"
                   >
-                    <span>{city}</span>
-                    <span className="text-[10px] text-input-placeholder">
-                      {CITY_TO_PROVINCE[city]}
-                    </span>
+                    <span>{o.name}</span>
+                    <span className="text-[10px] text-input-placeholder">{o.province}</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => togglePinned(city)}
-                    aria-label={isPinned ? `Unpin ${city}` : `Pin ${city}`}
+                    onClick={() => togglePinned(o.name)}
+                    aria-label={isPinned ? `Unpin ${o.name}` : `Pin ${o.name}`}
                     title={isPinned ? "Unpin" : "Pin"}
                     className={cn(
                       "ml-2 rounded-pill p-1",
                       isPinned ? "text-accent" : "text-input-placeholder hover:text-input-text",
                     )}
                   >
-                    {isPinned ? (
-                      <PinOff className="h-3.5 w-3.5" />
-                    ) : (
-                      <Pin className="h-3.5 w-3.5" />
-                    )}
+                    {isPinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
                   </button>
                 </li>
               );

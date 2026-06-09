@@ -1,6 +1,13 @@
 // Builds the Anthropic Messages payload for a leads search.
 import type { LeadsParams } from "./schemas";
+import { parseCityKey } from "./data";
 import { ANTHROPIC_MODEL, WEB_SEARCH_TOOL } from "../../../server/lib/anthropic";
+
+// Selections are stored as "name|province" keys; show the model "Name (PROV)".
+function formatCity(key: string): string {
+  const { name, province } = parseCityKey(key);
+  return province ? `${name} (${province})` : name;
+}
 
 const SYSTEM = `You are a senior logistics analyst at a Canadian freight brokerage.
 Your job: given the user's filters, identify real Canadian trucking carriers that match.
@@ -47,7 +54,7 @@ export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
     params.provinces.length ? `- Provinces: ${params.provinces.join(", ")}` : "",
     params.sectors.length ? `- Regional sectors (soft): ${params.sectors.join(", ")}` : "",
     params.cities.length
-      ? `- Cities of interest (${params.cities.length}): ${params.cities.slice(0, 60).join(", ")}` +
+      ? `- Cities of interest (${params.cities.length}): ${params.cities.slice(0, 60).map(formatCity).join(", ")}` +
         (params.cities.length > 60
           ? `, …and ${params.cities.length - 60} more across the selected area`
           : "")

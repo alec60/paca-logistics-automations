@@ -75,6 +75,6 @@ export function buildAllLanes(): string[] {
 // the map + paint-select; CITIES / CITY_TO_PROVINCE are name-keyed views for
 // the type-ahead search.
 export type { Place } from "./cities";
-export { PLACES, CITIES, CITY_TO_PROVINCE } from "./cities";
+export { PLACES, CITIES, CITY_TO_PROVINCE, cityKey, parseCityKey } from "./cities";
 
 export type City = string;

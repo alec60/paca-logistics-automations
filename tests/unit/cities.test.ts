@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLACES, CITIES, CITY_TO_PROVINCE } from "../../src/skills/leads/cities";
+import { PLACES, CITIES, CITY_TO_PROVINCE, cityKey, parseCityKey } from "../../src/skills/leads/cities";
 
 const CODES = new Set(["AB", "BC", "MB", "NB", "NL", "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"]);
 
@@ -35,5 +35,23 @@ describe("places dataset", () => {
   it("CITIES is unique and alphabetically sorted", () => {
     expect(new Set(CITIES).size).toBe(CITIES.length);
     expect(CITIES).toEqual([...CITIES].sort((a, b) => a.localeCompare(b, "en")));
+  });
+});
+
+describe("place keys (the over-selection fix)", () => {
+  it("round-trips name + province", () => {
+    const k = cityKey("Mount Pleasant", "ON");
+    expect(k).toBe("Mount Pleasant|ON");
+    expect(parseCityKey(k)).toEqual({ name: "Mount Pleasant", province: "ON" });
+  });
+
+  it("every place has a UNIQUE key (so selecting one never lights up another)", () => {
+    const keys = PLACES.map((p) => cityKey(p.name, p.province));
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("duplicate town names exist across provinces — proving why keys are needed", () => {
+    const names = PLACES.map((p) => p.name);
+    expect(new Set(names).size).toBeLessThan(names.length);
   });
 });

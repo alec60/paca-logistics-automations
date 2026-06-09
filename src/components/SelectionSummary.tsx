@@ -2,7 +2,7 @@
 // (with their N/S/E/W sectors) and cities — in a single scrollable list, so
 // the whole picker stays on one screen. Click the header to expand/collapse.
 import { ChevronDown, MapPin, X } from "lucide-react";
-import { PROVINCES } from "../skills/leads/data";
+import { PROVINCES, parseCityKey } from "../skills/leads/data";
 import { useSettingsStore } from "../core/settings-store";
 
 interface Props {
@@ -106,22 +106,28 @@ export function SelectionSummary({
             )}
             {cities.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {cities.slice(0, CITY_CHIP_CAP).map((c) => (
-                  <span
-                    key={c}
-                    className="inline-flex items-center gap-1 rounded-pill bg-surface-3 px-2.5 py-1 text-xs font-medium text-text"
-                  >
-                    {c}
-                    <button
-                      type="button"
-                      onClick={() => onRemoveCity(c)}
-                      aria-label={`Remove ${c}`}
-                      className="opacity-70 hover:opacity-100"
+                {cities.slice(0, CITY_CHIP_CAP).map((c) => {
+                  const { name, province } = parseCityKey(c);
+                  return (
+                    <span
+                      key={c}
+                      className="inline-flex items-center gap-1 rounded-pill bg-surface-3 px-2.5 py-1 text-xs font-medium text-text"
                     >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
+                      {name}
+                      {province && (
+                        <span className="font-mono text-[10px] text-text-muted">{province}</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onRemoveCity(c)}
+                        aria-label={`Remove ${name}`}
+                        className="opacity-70 hover:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  );
+                })}
                 {cities.length > CITY_CHIP_CAP && (
                   <span className="inline-flex items-center rounded-pill bg-surface-3 px-2.5 py-1 text-xs font-medium text-text-muted">
                     +{(cities.length - CITY_CHIP_CAP).toLocaleString()} {fr ? "autres" : "more"}

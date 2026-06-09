@@ -37,3 +37,15 @@ export const CITY_TO_PROVINCE: Record<string, ProvinceCode> = (() => {
 export const CITIES: string[] = Object.keys(CITY_TO_PROVINCE).sort((a, b) =>
   a.localeCompare(b, "en"),
 );
+
+// A place is identified by name + province (unique in PLACES). Selections are
+// stored as these keys, NOT bare names — otherwise selecting one "Mount
+// Pleasant" would light up every same-named town across the country.
+export const cityKey = (name: string, province: string): string => `${name}|${province}`;
+
+export function parseCityKey(key: string): { name: string; province: string } {
+  const i = key.lastIndexOf("|");
+  return i < 0
+    ? { name: key, province: "" }
+    : { name: key.slice(0, i), province: key.slice(i + 1) };
+}

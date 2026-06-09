@@ -14,6 +14,30 @@ export function pointInPolygon(x: number, y: number, polygon: [number, number][]
   return inside;
 }
 
+/** Every projected point within `radius` of ANY brush centre (a circular
+ *  marker, or a drag-stroke of circles). All coordinates share one space.
+ *  Precise distance test — the only points returned are genuinely in range. */
+export function pointsWithinBrush<T extends { x: number; y: number }>(
+  points: T[],
+  centers: [number, number][],
+  radius: number,
+): T[] {
+  if (centers.length === 0 || radius <= 0) return [];
+  const r2 = radius * radius;
+  const out: T[] = [];
+  for (const p of points) {
+    for (let i = 0; i < centers.length; i++) {
+      const dx = p.x - centers[i][0];
+      const dy = p.y - centers[i][1];
+      if (dx * dx + dy * dy <= r2) {
+        out.push(p);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
 /** Names of every projected point whose (x, y) falls inside the paint polygon.
  *  Tests ALL points (even ones too small to be drawn) so painting a region
  *  selects the tiny towns too. Returns de-duplicated names. */

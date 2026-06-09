@@ -147,6 +147,7 @@ export function ParamView({ onSubmit, defaultValues }: Props) {
 
           <Field label={fr ? "Villes" : "Cities"}>
             <CitySearch
+              byKey
               hideSelected
               selectedCities={cities}
               selectedProvinces={provinces}
