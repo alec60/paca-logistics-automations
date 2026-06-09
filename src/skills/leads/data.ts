@@ -2,17 +2,13 @@
 // All public information (Canadian geography, industry-standard equipment).
 // No real carrier names or business data per Section 11.
 
+// Trimmed to the four equipment types the brokerage actually books.
+// Shippers re-exports this as FREIGHT_EQUIPMENT so the two automations align.
 export const TRUCK_TYPES = [
   "Flatbed",
-  "Bi-Train",
-  "Dry Van",
-  "Reefer",
-  "Tanker",
-  "Lowboy",
-  "Step Deck",
-  "Curtainsider",
   "B-Train",
-  "Conestoga",
+  "Dry Van",
+  "Tanker",
 ] as const;
 export type TruckType = (typeof TRUCK_TYPES)[number];
 
@@ -21,8 +17,12 @@ export type TruckType = (typeof TRUCK_TYPES)[number];
 // the model is not allowed to exceed.
 export const FLEET_CAP = { min: 5, max: 200, default: 50 } as const;
 
+// Legacy fixed steps — still used by the shippers skill (SHIPPER_COUNTS).
 export const LEAD_COUNTS = [5, 10, 15, 20, 30, 50] as const;
 export type LeadCount = (typeof LEAD_COUNTS)[number];
+
+// Leads now uses a continuous slider instead of fixed steps.
+export const LEAD_RANGE = { min: 5, max: 100, default: 10 } as const;
 
 export const PROVINCES = [
   { code: "AB", nameEn: "Alberta", nameFr: "Alberta" },
