@@ -20,6 +20,9 @@ interface Props {
   sectors: string[];
   onToggleProvince: (code: ProvinceCode) => void;
   onToggleSector: (sector: string) => void;
+  // When true, the map fills its parent's height (for the one-screen leads
+  // layout) instead of using the default capped height.
+  fill?: boolean;
 }
 
 interface Center {
@@ -34,6 +37,7 @@ export function CanadaMap({
   sectors,
   onToggleProvince,
   onToggleSector,
+  fill = false,
 }: Props) {
   const pathRefs = useRef<Record<string, SVGPathElement | null>>({});
   const [centers, setCenters] = useState<Record<string, Center>>({});
@@ -79,11 +83,19 @@ export function CanadaMap({
   }
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface-2 p-3 shadow-soft">
+    <div
+      className={cn(
+        "rounded-lg border border-border-subtle bg-surface-2 shadow-soft",
+        fill ? "h-full w-full p-2" : "p-3",
+      )}
+    >
       <svg
         viewBox={MAP.viewBox}
         preserveAspectRatio="xMidYMid meet"
-        className="mx-auto block h-auto w-full max-h-[540px]"
+        className={cn(
+          "mx-auto block w-full",
+          fill ? "h-full max-h-full" : "h-auto max-h-[540px]",
+        )}
         role="group"
         aria-label="Canadian provinces and territories"
       >
