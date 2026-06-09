@@ -49,6 +49,9 @@ Thumbs.db
 tauri-signing-*
 ~/
 
+# GeoNames raw dump — build input for scripts/gen-cities.mjs (regenerate, don't commit)
+.geonames-cache/
+
 # TS build info
 *.tsbuildinfo
 
