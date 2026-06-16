@@ -4,6 +4,7 @@ import { Copy, Save, RefreshCw, Ban, ExternalLink } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { ResultTable, type Column } from "../../components/ResultTable";
 import { CostBadge } from "../../components/CostBadge";
+import { CarrierResearch } from "../../components/CarrierResearch";
 import { EmptyState } from "../../components/EmptyState";
 import { blacklistApi } from "../../core/context";
 import type { LeadsParams, LeadsResult, Carrier } from "./schemas";
@@ -136,6 +137,7 @@ export function ResultView({ result, onNewSearch }: Props) {
       header: "",
       cell: (r) => (
         <div className="flex items-center gap-1">
+          <CarrierResearch carrier={r} />
           <Button size="icon" variant="ghost" onClick={() => copyContact(r)} aria-label={t("blacklist.add")}>
             <Copy className="h-3.5 w-3.5" />
           </Button>
