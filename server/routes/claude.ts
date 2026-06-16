@@ -13,16 +13,32 @@ const ALLOWED_MODELS = new Set([
   "claude-sonnet-4-5-20250929",
   "claude-haiku-4-5-20250929",
 ]);
-const MAX_TOKENS_CAP = 4096;
+// Generous on Tier 2 (was 4096, which truncated the leads JSON for any decent
+// count). Still a hard ceiling so the renderer can't request absurd output.
+const MAX_TOKENS_CAP = 16384;
 const ALLOWED_TOOL_TYPES = new Set(["web_search_20250305"]);
 
+interface ToolEntry {
+  type?: unknown;
+  name?: unknown;
+  input_schema?: unknown;
+}
 interface MessagesBody {
   request: {
     model?: unknown;
     max_tokens?: unknown;
-    tools?: Array<{ type?: unknown }>;
+    tools?: ToolEntry[];
     [k: string]: unknown;
   };
+}
+
+// Permit web_search (hosted server tool) and CUSTOM tools (name + input_schema).
+// Custom tools are output schemas the model fills — nothing is executed here, so
+// they carry no execution risk; we just read the structured result back.
+function toolAllowed(tool: ToolEntry): boolean {
+  if (!tool || typeof tool !== "object") return false;
+  if (typeof tool.type === "string" && ALLOWED_TOOL_TYPES.has(tool.type)) return true;
+  return typeof tool.name === "string" && typeof tool.input_schema === "object" && tool.input_schema !== null;
 }
 
 function sanitizeRequest(raw: unknown): { ok: true; req: object } | { ok: false; error: string } {
@@ -36,11 +52,8 @@ function sanitizeRequest(raw: unknown): { ok: true; req: object } | { ok: false;
   }
   if (r.tools && Array.isArray(r.tools)) {
     for (const tool of r.tools) {
-      if (!tool || typeof tool !== "object" || typeof tool.type !== "string") {
-        return { ok: false, error: "tool entry malformed" };
-      }
-      if (!ALLOWED_TOOL_TYPES.has(tool.type)) {
-        return { ok: false, error: `tool type not allowed: ${tool.type}` };
+      if (!toolAllowed(tool)) {
+        return { ok: false, error: "tool not allowed (only web_search + custom output tools)" };
       }
     }
   }

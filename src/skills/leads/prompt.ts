@@ -1,4 +1,9 @@
 // Builds the Anthropic Messages payload for a leads search.
+//
+// The model researches with web_search, then returns results by calling the
+// `submit_leads` tool — structured, schema-validated output instead of free-form
+// JSON we have to scrape out of prose. That removes the whole class of
+// "model narrated / truncated the JSON" parse failures.
 import type { LeadsParams } from "./schemas";
 import { parseCityKey } from "./data";
 import { ANTHROPIC_MODEL, WEB_SEARCH_TOOL } from "../../../server/lib/anthropic";
@@ -9,42 +14,76 @@ function formatCity(key: string): string {
   return province ? `${name} (${province})` : name;
 }
 
-const SYSTEM = `You are a senior logistics analyst at a Canadian freight brokerage.
-Your job: given the user's filters, identify real Canadian trucking carriers that match.
+// Structured-output tool. The model fills this; Anthropic validates it against
+// the schema, and the handler reads `tool_use.input` directly.
+export const SUBMIT_LEADS_TOOL = {
+  name: "submit_leads",
+  description:
+    "Return the final list of matching Canadian trucking carriers. Call this exactly once, after researching with web_search. Put the entire answer here — do not also write it as prose.",
+  input_schema: {
+    type: "object",
+    properties: {
+      query_summary: {
+        type: "string",
+        description: "One short sentence summarising what was searched and found.",
+      },
+      carriers: {
+        type: "array",
+        description: "Matching carriers, most complete / best-contact first.",
+        items: {
+          type: "object",
+          properties: {
+            company: { type: "string", description: "Carrier business name." },
+            province: { type: "string", description: "2-letter province code, e.g. ON, QC, AB." },
+            city: { type: "string" },
+            fleet_size: {
+              type: "string",
+              description: 'Free-form, e.g. "~25 trucks" or "Small (1-10)".',
+            },
+            equipment: {
+              type: "array",
+              items: { type: "string" },
+              description: "Equipment / trailer types the carrier runs.",
+            },
+            phone: { type: "string" },
+            email: { type: "string" },
+            website: { type: "string" },
+            lanes: { type: "string", description: "Free-form description of typical lanes." },
+          },
+          required: ["company", "province"],
+        },
+      },
+      sources: {
+        type: "array",
+        description: "Web pages used as evidence.",
+        items: {
+          type: "object",
+          properties: { title: { type: "string" }, url: { type: "string" } },
+          required: ["title", "url"],
+        },
+      },
+    },
+    required: ["query_summary", "carriers", "sources"],
+  },
+} as const;
 
-RULES
-- Only use information you can verify via the web_search tool. Never invent contact data.
-- CONTACT — PREFER, DON'T REQUIRE: prioritize carriers with a public phone or email (search the carrier website, contact/about page, and public directories) and LIST THOSE FIRST. Aim to return the FULL requested count — if you cannot find that many WITH verified contact info, FILL THE REMAINDER with relevant matching carriers even without contact rather than returning fewer. Never return fewer than three-quarters of the requested count when matching carriers exist.
-- HARD CAP on fleet size: never return a carrier whose fleet exceeds the maximum number of trucks stated in the user message. This is a strict ceiling, not a preference.
-- Prefer carriers with public websites, MC/DOT numbers, or government-registered fleets.
-- Paraphrase carrier descriptions; do not copy marketing prose verbatim.
-- If a regional sector is supplied (e.g. QC-N), treat it as a soft preference, not a reject filter.
-- Return as close to the requested count as possible; only return fewer than that if there genuinely are not enough matching carriers in Canada.
-- For any optional field you cannot verify, OMIT THE KEY ENTIRELY (do not use null, "", or "N/A").
-- Return ONLY a single JSON object matching the schema in the user message — no prose, no markdown fences.
+const SYSTEM = `You are a senior carrier-sourcing analyst at a Canadian freight brokerage.
+Goal: given the user's filters, find REAL Canadian trucking carriers that match, then return them by calling the submit_leads tool.
 
-JSON SCHEMA
-{
-  "query_summary": string,
-  "carriers": [{
-    "company": string,
-    "province": string,         // 2-letter code
-    "city": string?,
-    "fleet_size": string?,      // e.g. "Small (1-10)" or "~25 trucks"
-    "equipment": string[],
-    "phone": string?,
-    "email": string?,
-    "website": string?,
-    "lanes": string?            // free-form description of typical lanes
-  }],
-  "sources": [{ "title": string, "url": string }]
-}`;
+METHOD
+- Research with the web_search tool before answering. Search carrier directories, provincial registries, company websites, and contact/about pages. Run several searches to cover the requested provinces/cities and to dig up contact details.
+- Only report carriers you can corroborate from search results. Never invent company names, phone numbers, emails, or websites.
 
-function locale(l: "en" | "fr"): string {
-  return l === "fr"
-    ? "Respond with the JSON object only. Field VALUES may stay in English from carrier websites."
-    : "Respond with the JSON object only.";
-}
+QUALITY BAR
+- Prefer carriers with a public phone or email and list the most complete entries first. If you can't find the full requested count WITH contacts, fill the remainder with relevant matching carriers (even without contacts) rather than returning fewer — aim for at least three-quarters of the requested count when matches exist.
+- Favour small / independent carriers that fit the filters — those are the most valuable here.
+- HARD CAP on fleet size: never include a carrier whose fleet exceeds the stated maximum number of trucks. Strict ceiling, not a preference.
+- Use accurate 2-letter province codes. Paraphrase descriptions; never copy marketing prose.
+- Treat regional sectors (e.g. QC-N) and preferred lanes as soft preferences, not reject filters.
+- Omit any optional field you cannot verify (no "N/A"/placeholder values).
+
+OUTPUT
+- When finished, call submit_leads exactly once with query_summary, the carriers array, and the sources you relied on.`;
 
 export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
   const userPrompt = [
@@ -64,17 +103,24 @@ export function buildMessagesRequest(params: LeadsParams, l: "en" | "fr") {
       ? `\nAdditional instructions from the user (apply within the rules above): ${params.custom_instructions}`
       : "",
     "",
-    locale(l),
+    l === "fr"
+      ? "Field VALUES may stay in English from carrier websites. Call submit_leads with the results."
+      : "Call submit_leads with the results.",
   ]
     .filter(Boolean)
     .join("\n");
 
+  // Scale the output budget to the requested count (each carrier is ~200 output
+  // tokens) so the structured result never gets truncated. Capped by the
+  // sidecar's MAX_TOKENS_CAP.
+  const maxTokens = Math.min(16384, 2500 + params.count * 300);
+
   return {
     model: ANTHROPIC_MODEL,
-    // Conservative for Tier 1 (8k OTPM cap). Plenty for ~10 carriers as JSON.
-    max_tokens: 2048,
+    max_tokens: maxTokens,
     system: SYSTEM,
-    tools: [WEB_SEARCH_TOOL],
+    tools: [WEB_SEARCH_TOOL, SUBMIT_LEADS_TOOL],
+    tool_choice: { type: "auto" as const },
     messages: [{ role: "user" as const, content: userPrompt }],
   };
 }
