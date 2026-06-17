@@ -1,7 +1,7 @@
 {
   "name": "transport-paca",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n vite,sidecar -c blue,magenta \"vite\" \"pnpm sidecar:dev\"",

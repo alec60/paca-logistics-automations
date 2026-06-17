@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "transport-paca",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.alecl.transport-paca",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -38,7 +38,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/alec60/paca-logistics-automations/releases/latest/download/latest.json"
+        "https://pub-b668794d0adc4056bbcaec6250de2a6b.r2.dev/latest.json"
       ],
       "pubkey": "RWRuZGFGY1IwSWRETzJ6a1FHaVRscTE3em01UisybzRKK05WTWVzVEgwUWRybFBiNk1vd05udQ=="
     }

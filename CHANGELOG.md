@@ -4,13 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-17
+
 ### Added
+- **Comprehensive Canadian places library** (~19k cities/towns with coordinates, GeoNames-sourced) replacing the curated ~300; the map plots them with level-of-detail.
+- **Interactive leads map**: real geographic (d3 conic) projection — click provinces, or use an adjustable-radius **marker** to select every town in range (selections keyed by name+province so duplicate town names don't collide); scroll/trackpad **zoom** + drag-pan.
+- **Per-lead deep research**: a button on each pulled lead opens an instructions popover (blank = dig deeper into the company) and returns a web-search-backed Markdown briefing.
 - **shippers** automation ("Recherche d'expéditeurs" / "Shipper lead finder"): finds Canadian businesses likely to need freight hauled — the brokerage's potential customers — with public contact info and a buying-signal rationale per prospect. Mirrors the `leads` block and deliberately shares the freight-equipment + lane vocabulary so found shippers line up with found carriers for matching.
 - **Light / Dark / System** theme switch: a full light theme for the content area (OS-preference-aware "System"), toggleable from the header or Settings → Theme. The dark-navy chrome stays fixed (brand-logo constraint).
 - **Accurate Canada map**: the province picker now renders real provincial + territorial geography (`@svg-maps/canada`) tinted with the brand orange (legible in both themes), replacing the schematic blobs. Selecting a province reveals an animated NSEW compass (sector picker) at its centroid.
 - **Loading skeletons**: a result-shaped shimmer placeholder (`Skeleton` / `ResultSkeleton`) replaces the bare "loading…" text while a search runs.
 
 ### Changed
+- **Leads search reliability**: results return via a schema-validated `submit_leads` tool call (not free-form JSON scraped from prose), with the output token budget scaled to the requested count — fixes the "incomplete/interrupted response" truncation. web_search `max_uses` 2 → 5 (Tier 2 headroom).
+- **Desktop auto-update** moved from public GitHub Releases to **Cloudflare R2** (`latest.json` at `pub-…r2.dev`); the web app moved to **Cloudflare Pages** behind **Cloudflare Access** (company-only, email OTP). Repo going private.
+- **Leads form**: one-screen layout; truck types trimmed to Flatbed / B-Train / Dry Van / Tanker; lead count is now a 5–100 slider; Regions picker removed (select provinces via the map).
 - UI design-system refresh (palette v3): de-blued the neutral palette to clean greys, replaced the coral→yellow gradient + orange glow with one solid orange accent (`#fa6f3a`), moderated the fully-pill inputs/buttons to crisp 14 px radii (pill kept for chips), added hairline borders + refined elevation. Token-driven in `src/index.css @theme`; layout unchanged.
 - Micro-interactions: subtle card hover-lift, button press feedback (`active:scale`), and smoother focus-visible rings — all ≤120 ms.
 - **Palette v4** (professional rework): dark mode now uses **dark elevated cards with light text** (a standard pro dark theme) instead of light cards on a dark canvas; light mode keeps clean white cards with a **deeper** orange accent (`#d95e22`) for stronger contrast on white; refined neutral ramps + a warm-orange accent (`#ee6c2c`) across both. Token-driven.
@@ -19,6 +27,8 @@ All notable changes to this project will be documented in this file.
 - Automations (lead count): leads & shippers now return close to the full requested count — dropped the hard "must have a phone/email" filter (it was returning ~2 of 10) in favour of ranking by info richness (contact-bearing, most-complete entries first) and prompting the model to fill the remainder without contact rather than returning fewer.
 
 ### Fixed
+- **leads "Unexpected token" / "incomplete response" errors**: web_search narration and truncated JSON no longer break parsing (robust extraction + structured tool output), with a clean retryable message as a last resort.
+- **Light mode** content panels rendered navy (`surface-1` wasn't re-themed) — now soft grey; province compass markers no longer overlap when two provinces are close together.
 - Light theme borders: card / input / outline-button / dropdown-divider now use the themed `border-border-subtle` (visible light-grey) instead of near-invisible hardcoded `black/4–10%`.
 - Accessibility (light theme): input-placeholder and text-dim bumped toward WCAG AA contrast; darker, more-opaque focus ring on light surfaces; Canada-map paths **and** the NSEW compass are now keyboard-navigable with aria labels.
 - leads results: the Company column header used the `settings.title` key (rendered "Settings"/"Paramètres") — now a proper label; table rows use a stable key (was array index, breaking reconciliation when blacklisting); removed a dead `m ? 60 : 60` ternary in the rate-limit handler.

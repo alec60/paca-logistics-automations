@@ -46,4 +46,52 @@ jobs:
           # unfinished build. Publish manually after review.
           releaseDraft: true
           prerelease: false
+          # Still uploaded to the GitHub release so already-installed (pre-R2)
+          # clients can fetch this migration build via their baked-in GitHub
+          # endpoint. New builds point the updater at R2 (tauri.conf.json).
           includeUpdaterJson: true
+
+      # Mirror the signed installer + a Tauri-v2 update manifest to Cloudflare
+      # R2 (the new updater endpoint baked into this build). Once everyone is on
+      # this version, the repo can go private without breaking auto-update.
+      - name: Mirror updater to Cloudflare R2
+        shell: pwsh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          # AWS CLI v2 defaults to CRC32 checksums that R2 rejects; require-only.
+          AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+          AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
+        run: |
+          if (-not $env:AWS_ACCESS_KEY_ID) {
+            Write-Warning "R2 credentials missing — skipping R2 mirror. Set R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY and re-run."
+            exit 0
+          }
+          $endpoint = "https://567ca3e39ab8019acbd8f82face56b90.r2.cloudflarestorage.com"
+          $bucket   = "paca-updates"
+          $base     = "https://pub-b668794d0adc4056bbcaec6250de2a6b.r2.dev"
+          $bundle   = "src-tauri/target/release/bundle"
+          # The updater artifact is the installer with a sibling .sig. Prefer MSI.
+          $sigs = Get-ChildItem -Path $bundle -Recurse -Filter *.sig -ErrorAction SilentlyContinue |
+                  Sort-Object { if ($_.Name -like '*.msi.sig') { 0 } else { 1 } }
+          if (-not $sigs) { throw "No .sig updater artifacts found under $bundle" }
+          $sigFile   = $sigs[0]
+          $installer = $sigFile.FullName -replace '\.sig$',''
+          if (-not (Test-Path $installer)) { throw "Installer for $($sigFile.Name) not found" }
+          $name    = Split-Path $installer -Leaf
+          $version = "${{ github.ref_name }}" -replace '^v',''
+          $pubDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+          $sig     = (Get-Content $sigFile.FullName -Raw).Trim()
+          $manifest = [ordered]@{
+            version   = $version
+            pub_date  = $pubDate
+            platforms = [ordered]@{
+              "windows-x86_64" = [ordered]@{ signature = $sig; url = "$base/$name" }
+            }
+          }
+          $manifest | ConvertTo-Json -Depth 6 | Set-Content latest.json -Encoding utf8
+          Write-Host "Uploading $name + latest.json to R2 bucket '$bucket'..."
+          aws s3 cp "$installer" "s3://$bucket/$name" --endpoint-url $endpoint --content-type "application/octet-stream"
+          aws s3 cp "latest.json" "s3://$bucket/latest.json" --endpoint-url $endpoint --content-type "application/json"
+          Write-Host "Updater manifest live at $base/latest.json"
