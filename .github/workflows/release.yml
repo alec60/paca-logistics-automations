@@ -51,12 +51,15 @@ jobs:
           # endpoint. New builds point the updater at R2 (tauri.conf.json).
           includeUpdaterJson: true
 
-      # Mirror the signed installer + a Tauri-v2 update manifest to Cloudflare
-      # R2 (the new updater endpoint baked into this build). Once everyone is on
-      # this version, the repo can go private without breaking auto-update.
-      - name: Mirror updater to Cloudflare R2
+      # Publish the update manifest to BOTH the GitHub release (so already-
+      # installed pre-R2 clients migrate via their baked-in GitHub endpoint) and
+      # Cloudflare R2 (the endpoint new builds use). We construct latest.json
+      # ourselves — url → the .msi installer, signature → the .msi.sig content
+      # (Tauri v2 format) — so it doesn't depend on tauri-action's generation.
+      - name: Publish updater (GitHub release + Cloudflare R2)
         shell: pwsh
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
@@ -64,34 +67,59 @@ jobs:
           AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
           AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
         run: |
-          if (-not $env:AWS_ACCESS_KEY_ID) {
-            Write-Warning "R2 credentials missing — skipping R2 mirror. Set R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY and re-run."
-            exit 0
-          }
+          $ErrorActionPreference = "Stop"
           $endpoint = "https://567ca3e39ab8019acbd8f82face56b90.r2.cloudflarestorage.com"
           $bucket   = "paca-updates"
-          $base     = "https://pub-b668794d0adc4056bbcaec6250de2a6b.r2.dev"
-          $bundle   = "src-tauri/target/release/bundle"
-          # The updater artifact is the installer with a sibling .sig. Prefer MSI.
-          $sigs = Get-ChildItem -Path $bundle -Recurse -Filter *.sig -ErrorAction SilentlyContinue |
+          $r2base   = "https://pub-b668794d0adc4056bbcaec6250de2a6b.r2.dev"
+          $tag      = "${{ github.ref_name }}"
+          $version  = $tag -replace '^v',''
+          $repo     = "${{ github.repository }}"
+          $ghbase   = "https://github.com/$repo/releases/download/$tag"
+
+          $bundle = Join-Path $env:GITHUB_WORKSPACE "src-tauri\target\release\bundle"
+          if (-not (Test-Path $bundle)) { throw "bundle dir not found: $bundle" }
+
+          # The updater installer is a real .msi/.exe with a sibling .sig
+          # (createUpdaterArtifacts emits <installer>.sig, no archive). Prefer MSI.
+          $sigs = Get-ChildItem -Path $bundle -Recurse -Filter *.sig |
+                  Where-Object { $_.Name -match '\.(msi|exe)\.sig$' } |
                   Sort-Object { if ($_.Name -like '*.msi.sig') { 0 } else { 1 } }
-          if (-not $sigs) { throw "No .sig updater artifacts found under $bundle" }
+          if (-not $sigs) {
+            $all = (Get-ChildItem -Path $bundle -Recurse -Filter *.sig | ForEach-Object Name) -join ', '
+            throw "No installer .sig under $bundle. Found: $all"
+          }
           $sigFile   = $sigs[0]
           $installer = $sigFile.FullName -replace '\.sig$',''
-          if (-not (Test-Path $installer)) { throw "Installer for $($sigFile.Name) not found" }
+          if (-not (Test-Path $installer)) { throw "Installer not found: $installer" }
           $name    = Split-Path $installer -Leaf
-          $version = "${{ github.ref_name }}" -replace '^v',''
-          $pubDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
           $sig     = (Get-Content $sigFile.FullName -Raw).Trim()
-          $manifest = [ordered]@{
-            version   = $version
-            pub_date  = $pubDate
-            platforms = [ordered]@{
-              "windows-x86_64" = [ordered]@{ signature = $sig; url = "$base/$name" }
-            }
+          $pubDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+          Write-Host "Updater installer: $name"
+
+          function Write-Manifest($url) {
+            ([ordered]@{
+              version   = $version
+              pub_date  = $pubDate
+              platforms = [ordered]@{ "windows-x86_64" = [ordered]@{ signature = $sig; url = $url } }
+            }) | ConvertTo-Json -Depth 6 | Set-Content latest.json -Encoding utf8
           }
-          $manifest | ConvertTo-Json -Depth 6 | Set-Content latest.json -Encoding utf8
-          Write-Host "Uploading $name + latest.json to R2 bucket '$bucket'..."
-          aws s3 cp "$installer" "s3://$bucket/$name" --endpoint-url $endpoint --content-type "application/octet-stream"
-          aws s3 cp "latest.json" "s3://$bucket/latest.json" --endpoint-url $endpoint --content-type "application/json"
-          Write-Host "Updater manifest live at $base/latest.json"
+
+          # 1. GitHub-hosted manifest (migrates pre-R2 installs). Overwrites any
+          #    tauri-action-generated one.
+          Write-Manifest "$ghbase/$name"
+          gh release upload $tag latest.json --clobber --repo $repo
+          if ($LASTEXITCODE -ne 0) { throw "gh release upload latest.json failed ($LASTEXITCODE)" }
+          Write-Host "GitHub manifest attached to release $tag"
+
+          # 2. R2-hosted manifest + installer (the endpoint new builds check).
+          if ($env:AWS_ACCESS_KEY_ID) {
+            if (-not (Get-Command aws -ErrorAction SilentlyContinue)) { throw "aws CLI not found on runner" }
+            aws s3 cp "$installer" "s3://$bucket/$name" --endpoint-url $endpoint --content-type "application/octet-stream"
+            if ($LASTEXITCODE -ne 0) { throw "R2 upload of installer failed ($LASTEXITCODE)" }
+            Write-Manifest "$r2base/$name"
+            aws s3 cp "latest.json" "s3://$bucket/latest.json" --endpoint-url $endpoint --content-type "application/json"
+            if ($LASTEXITCODE -ne 0) { throw "R2 upload of latest.json failed ($LASTEXITCODE)" }
+            Write-Host "R2 manifest live at $r2base/latest.json"
+          } else {
+            Write-Warning "R2 creds missing — skipped R2 mirror."
+          }
